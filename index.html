@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PERMIT TO WORK - Interactive Form</title>
+<link rel="preconnect" href="https://cdnjs.cloudflare.com">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+
+:root{
+  --navy:#162842;
+  --navy-dark:#101b2d;
+  --gold:#d0aa5b;
+  --gold-soft:#f6ecd6;
+  --cream:#f3eddf;
+  --paper:#fffdf8;
+  --ink:#071323;
+  --muted:#4d596b;
+  --line:#d6dfeb;
+  --soft:#f8fafc;
+  --danger:#e74c3c;
+  --shadow:0 16px 34px rgba(16,30,54,.09);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  font-family:Arial,Helvetica,sans-serif;
+  background:radial-gradient(circle at 8% 12%, rgba(208,170,91,.18), transparent 28%),linear-gradient(135deg,#f7f1e7 0%,#eef3f9 100%);
+  color:var(--ink);
+  line-height:1.35;
+  font-size:14px;
+}
+.app-header{
+  position:sticky;
+  top:0;
+  z-index:20;
+  width:min(1240px,calc(100% - 24px));
+  margin:14px auto 0;
+  padding:12px 18px;
+  display:flex;
+  gap:12px;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  background:rgba(255,255,255,.95);
+  border:1px solid rgba(214,223,235,.95);
+  border-radius:18px;
+  box-shadow:0 14px 30px rgba(16,30,54,.10);
+  backdrop-filter:blur(10px);
+}
+.brand-wrap{display:flex;align-items:center;gap:12px;min-width:260px}
+.logo-box{width:54px;height:54px;border-radius:16px;background:linear-gradient(135deg,var(--navy),#182b47);color:#fff;font-weight:900;display:grid;place-items:center;letter-spacing:.5px;flex:0 0 auto}
+.header-title h1{font-size:clamp(18px,2vw,23px);margin:0 0 3px;color:var(--navy);text-transform:uppercase;letter-spacing:.5px}
+.header-title p{font-size:12px;color:var(--muted);margin:0;font-weight:700}
+.actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.load-draft-stack{position:relative;display:flex;align-items:center}.auto-save-status{position:absolute;z-index:20;top:calc(100% + 4px);left:50%;display:flex;align-items:center;justify-content:center;height:25px;min-height:25px;padding:4px 8px;border:1px solid transparent;border-radius:8px;background:transparent;color:#795b18;font-size:11px;font-weight:900;white-space:nowrap;visibility:hidden;opacity:0;transform:translateX(-50%);transition:opacity .18s ease;box-sizing:border-box;pointer-events:none}.auto-save-status.show{visibility:visible;opacity:1;border-color:#d0aa5b;background:#fff8e8}.auto-save-status.saved{border-color:#78b98b;background:#eaf7ee;color:#18743a}.auto-save-status.failed{border-color:#cf7777;background:#fff0f0;color:#a71919}
+.review-mode .auto-save-status{top:50%;right:calc(100% + 8px);left:auto;transform:translateY(-50%)}
+.language-control{display:flex;align-items:center;gap:7px;padding:5px 7px 5px 10px;border:1px solid var(--line);border-radius:14px;background:#f8fafc;color:var(--navy);font-size:12px;font-weight:900}.language-control select{width:auto;min-width:105px;padding:7px 28px 7px 9px;border-radius:10px;font-size:12px;font-weight:800;background:#fff}
+.prediction-control{display:flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid var(--line);border-radius:14px;background:#f8fafc;color:var(--navy);font-size:12px;font-weight:900;cursor:pointer;white-space:nowrap}.prediction-control input{width:18px;height:18px;margin:0;accent-color:var(--navy);cursor:pointer}.prediction-control small{font-size:10px;color:var(--muted)}
+.prediction-strip{display:none;align-items:center;flex-wrap:wrap;gap:7px;min-height:34px;margin-top:7px;padding:7px 9px;border:1px solid #cdd8e6;border-radius:10px;background:#f5f8fc;color:var(--navy);font-size:12px;font-weight:800}.prediction-strip.active{display:flex}.prediction-strip .prediction-caption{color:var(--muted);font-size:11px}.prediction-words{display:flex;align-items:center;flex-wrap:wrap;gap:6px}.prediction-word{border:1px solid #aebed1;border-radius:9px;min-height:28px;padding:4px 10px;background:#fff;color:var(--navy);font-size:12px;font-weight:900;box-shadow:none}.prediction-word:hover,.prediction-word:focus{background:#e7eef7;border-color:#7f94ad}.prediction-hint{margin-left:auto;color:var(--muted);font-size:10px;font-weight:700}
+.english-entry,input,textarea,select{direction:ltr;text-align:left}.language-note{font-size:10px;color:var(--muted);font-weight:700;white-space:nowrap}
+.rtl-interface .label,.rtl-interface .block-label,.rtl-interface .section-title,.rtl-interface .field-section-header,.rtl-interface .permit-type-copy,.rtl-interface .contractor-regulations,.rtl-interface .regulations-ack,.rtl-interface .signatory-header,.rtl-interface .signatory-info label,.rtl-interface .completion-panel label,.rtl-interface .completion-intro{direction:rtl;text-align:right}.rtl-interface input,.rtl-interface textarea,.rtl-interface select{direction:ltr!important;text-align:left!important}.rtl-interface select{text-align-last:center!important}
+.mobile-actions-toggle{display:none}
+button{border:1px solid rgba(22,40,66,.08);border-radius:18px;padding:10px 14px;min-height:40px;font-weight:800;cursor:pointer;box-shadow:none;transition:transform .15s ease,filter .15s ease;background:#fff;color:var(--navy)}
+button:hover{transform:translateY(-1px);filter:brightness(.97)}
+.btn-primary{background:var(--navy);color:#fff}
+.btn-secondary{background:#fff;color:var(--navy);border:1px solid var(--line)}
+.btn-danger{background:#a32118;color:#fff;border:1px solid #861912}
+.btn-small{padding:8px 11px;border-radius:14px;font-size:12px;min-height:34px}
+.container{width:min(1240px,calc(100% - 24px));margin:20px auto 35px;padding:0}
+.notice{background:#fff;border:1px solid var(--line);border-left:5px solid var(--gold);border-radius:16px;padding:12px 14px;margin-bottom:14px;color:var(--muted);font-weight:800;box-shadow:0 10px 22px rgba(16,30,54,.07)}
+.form-shell{background:var(--paper);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);overflow:hidden}
+.top-strip{padding:30px 26px;background:linear-gradient(108deg,#162842 0%,#182b47 70%,#4b4c4f 100%);border-radius:24px 24px 0 0;color:#fff;border-bottom:4px solid var(--gold);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.top-strip .hotel{letter-spacing:4px;font-size:18px;font-weight:300;text-transform:uppercase;color:#fff;line-height:1.2}
+.top-strip .permit-title{font-size:clamp(25px,3vw,38px);font-weight:900;text-align:center;flex:1;letter-spacing:-.4px;color:#fff}
+.section-title{background:#fff;color:var(--navy);border:0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);box-shadow:inset 6px 0 0 var(--gold);padding:16px 18px;text-align:left;font-size:15px;font-weight:900;letter-spacing:.35px;text-transform:uppercase}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--line)}
+.cell{display:grid;grid-template-columns:minmax(170px,.95fr) 1.6fr;min-height:52px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.cell:nth-child(2n){border-right:0}.full-row{grid-column:1/-1}
+.label,.block-label,.sig-label{background:#fffaf0;color:var(--navy);padding:9px 10px;font-size:13px;font-weight:900;display:flex;align-items:center;line-height:1.22;border-right:1px solid var(--line)}
+.input-area,.block-control,.sig-content{padding:7px;background:#fff;display:flex;gap:7px;align-items:center;min-width:0;border-color:var(--line)}
+input,select,textarea{width:100%;border:1px solid #cfd9e6;border-radius:16px;padding:10px 11px;font-size:14px;background:#fff;color:var(--ink);outline:none;font-family:Arial,Helvetica,sans-serif;line-height:1.45}
+input:focus,select:focus,textarea:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(208,170,91,.22)}
+.picker-field{position:relative;display:flex;width:100%;min-width:0}.picker-field input{padding-right:59px}.picker-trigger{position:absolute;right:4px;top:50%;z-index:4;width:50px;height:34px;min-width:50px;min-height:26px;padding:0;transform:translateY(-50%)!important;transition:background-color .15s ease,filter .15s ease,box-shadow .15s ease;border:0;border-radius:8px;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 7px rgba(16,27,47,.22);cursor:pointer;touch-action:manipulation}.picker-trigger:hover,.picker-trigger:focus,.picker-trigger:active{transform:translateY(-50%)!important;background:#29496f;outline:3px solid rgba(208,170,91,.38)}.picker-trigger svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}@media(max-width:600px){.picker-trigger{width:34px;height:34px;min-width:34px;min-height:34px;right:3px}.picker-trigger svg{width:16px;height:16px}.picker-field input{padding-right:42px}}
+.time-picker-field input{appearance:none!important;-webkit-appearance:none!important;background-image:none!important}
+.time-picker-popup{position:fixed;z-index:135;display:none;width:min(320px,calc(100vw - 20px));overflow:hidden;border:1px solid #c8d1de;border-radius:16px;background:#fff;box-shadow:0 22px 65px rgba(16,27,47,.34)}.time-picker-popup.show{display:block}.time-picker-head{padding:13px 16px;border-bottom:4px solid var(--gold);background:var(--navy);color:#fff;font-weight:900;text-align:center}.time-picker-body{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:18px 14px}.time-picker-body label{display:grid;gap:6px;color:var(--navy);font-size:11px;font-weight:900;text-align:center;text-transform:uppercase}.time-picker-body select{text-align:center;text-align-last:center;font-weight:900}.time-picker-actions{display:flex;justify-content:flex-end;gap:8px;padding:11px 14px;border-top:1px solid var(--line)}@media(max-width:600px){.time-picker-popup.show{left:50%!important;top:50%!important;transform:translate(-50%,-50%);width:calc(100vw - 20px);max-width:350px}.time-picker-body select{min-height:48px;font-size:16px}.time-picker-actions button{min-height:44px}}
+textarea{min-height:105px;resize:none;overflow-y:hidden}.description-wrap{border-bottom:2px solid var(--line);padding:12px;background:#fff}.description-wrap label{display:block;text-align:center;font-weight:900;margin-bottom:8px;color:var(--navy)}
+.inline-two{display:grid;grid-template-columns:1fr 1fr;gap:7px;width:100%}.inline-three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;width:100%}
+.block-table{border-bottom:2px solid var(--line)}.block-header,.block-row{display:grid;grid-template-columns:minmax(0,1fr) 140px minmax(0,1fr) 140px;border-bottom:1px solid var(--line)}.block-header{background:var(--navy);color:#fff;font-weight:900;text-align:center;text-transform:uppercase;font-size:12px;letter-spacing:.25px}.block-header div{padding:9px 8px;border-right:1px solid rgba(255,255,255,.28);display:flex;align-items:center;justify-content:center}.block-header div:last-child{border-right:0}.block-row:last-child{border-bottom:0}.block-control{border-right:1px solid var(--line);justify-content:center}.block-control:last-child{border-right:0}.block-control select{max-width:125px;text-align:center;text-align-last:center;font-weight:900;color:var(--navy);padding-left:26px}.initial-input{max-width:125px;text-align:center;font-weight:900;color:var(--navy)}
+.warning{border-top:2px solid var(--line);border-bottom:2px solid var(--line);padding:13px 16px;text-align:center;color:#7b1f1f;font-weight:900;line-height:1.3;background:var(--gold-soft)}
+.signature-grid{display:grid;grid-template-columns:1fr 1fr;border-bottom:2px solid var(--line)}.signatory-section{border-right:1px solid var(--line);background:#fff;display:flex;flex-direction:column}.signatory-section:last-child{border-right:0}.signatory-header{padding:11px 14px;background:var(--navy);color:#fff;border-left:7px solid var(--gold);font-size:14px;font-weight:900;text-align:center;text-transform:uppercase}.signatory-fields{padding:12px;display:grid;grid-template-rows:86px auto;gap:10px;flex:1}.signatory-info{min-height:86px;display:grid;align-items:center}.signatory-info.single{grid-template-columns:1fr}.signatory-info.single label{width:min(100%,340px);justify-self:center}.signatory-identity-row{display:grid;grid-template-columns:1.15fr .85fr 1fr;gap:10px;align-items:end}.signatory-info label{display:block;color:var(--navy);font-size:12px;font-weight:900;text-align:center}.signatory-info label span{display:block;margin-bottom:5px}.signatory-fields input{text-align:center;min-height:42px}.signature-field{display:grid;gap:7px;color:var(--navy);font-size:13px;font-weight:900;text-align:center}.sign-pad{height:125px;border:1px dashed #9aa8ba;border-radius:14px;background:#fff;touch-action:none;width:100%}.signature-field .btn-small{justify-self:center}
+.modal{position:fixed;inset:0;background:rgba(16,27,47,.58);z-index:50;display:none;align-items:center;justify-content:center;padding:18px}.modal.show{display:flex}.modal-card{background:#fff;border-radius:18px;max-width:520px;width:100%;max-height:calc(100vh - 36px);max-height:calc(100dvh - 36px);box-shadow:0 28px 80px rgba(0,0,0,.28);overflow:hidden;display:flex;flex-direction:column}.modal-head{background:var(--navy);color:#fff;padding:14px 18px;font-weight:900;border-bottom:4px solid var(--gold);flex:0 0 auto}.modal-body{padding:16px;line-height:1.45;overflow-y:auto;overscroll-behavior:contain;min-height:0;flex:1 1 auto;-webkit-overflow-scrolling:touch}.missing-list{background:#f5efe2;border:1px solid #d7c49a;border-radius:12px;padding:10px 14px;color:#101b2f}.modal-foot{padding:12px 16px;display:flex;justify-content:flex-end;border-top:1px solid var(--line);background:#fff;position:sticky;bottom:0;z-index:5;flex:0 0 auto;box-shadow:0 -8px 18px rgba(16,27,47,.10)}.modal-foot .btn-primary{position:relative;z-index:6;min-width:58px;min-height:44px}
+@media(max-width:600px){.prediction-control{display:none!important}.prediction-strip{width:100%;padding:8px;gap:6px}.prediction-strip .prediction-caption{width:100%}.prediction-words{width:100%;overflow-x:auto;flex-wrap:nowrap;padding-bottom:2px;-webkit-overflow-scrolling:touch}.prediction-word{flex:0 0 auto;min-height:38px}.prediction-hint{display:none}.modal{padding:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));align-items:center}.modal-card{width:min(100%,520px);max-height:calc(100vh - 16px);max-height:calc(100dvh - 16px);margin:auto;border-radius:14px}.modal-head{padding:12px 14px;font-size:clamp(14px,4.3vw,17px)}.modal-body{padding:14px;font-size:clamp(13px,3.8vw,15px);overflow-wrap:anywhere}.missing-list{padding:9px 11px}.modal-foot{padding:10px max(12px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left))}.modal-foot .btn-primary{width:100%;min-height:46px}.clear-confirm,.progress-overlay{padding:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left))}.clear-confirm-card,.progress-card{width:min(100%,440px);max-height:calc(100dvh - 16px);overflow:auto;border-radius:14px}.clear-confirm-head,.progress-head{padding:12px 14px;font-size:clamp(14px,4.3vw,17px)}.clear-confirm-body,.progress-body{padding:14px;font-size:clamp(13px,3.8vw,15px);overflow-wrap:anywhere}.clear-confirm-actions{padding:10px;gap:8px}.clear-confirm-actions button{flex:1;min-width:0;min-height:46px}.toast{width:calc(100vw - 20px);max-width:420px;padding:12px 14px;font-size:clamp(13px,3.8vw,15px);overflow-wrap:anywhere}}
+.clear-confirm{position:fixed;inset:0;z-index:95;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(73,15,15,.38)}.clear-confirm.show{display:flex}.clear-confirm-card{width:min(440px,100%);overflow:hidden;border:1px solid #efb3b3;border-radius:18px;background:#fff7f7;box-shadow:0 24px 70px rgba(94,18,18,.25)}.clear-confirm-head{padding:14px 18px;background:#fbdada;color:#8f1d1d;border-bottom:1px solid #e7aaaa;font-size:16px;font-weight:900}.clear-confirm-body{padding:18px;color:#702020;font-weight:750;line-height:1.5}.clear-confirm-actions{display:flex;justify-content:flex-end;gap:9px;padding:12px 16px;background:#fff;border-top:1px solid #efcaca}.btn-clear-confirm{background:#b42318;color:#fff;border-color:#941b13}
+.field-missing{border-color:#c62828!important;outline:3px solid rgba(198,40,40,.18)!important;background:#fff1f1!important;box-shadow:0 0 0 1px #c62828!important}.permit-type-group.field-missing,.regulations-ack.field-missing{padding:8px!important;border:2px solid #c62828!important;border-radius:12px!important}.sign-pad.field-missing{border:2px solid #c62828!important;background:#fff1f1!important}
+.progress-overlay{position:fixed;inset:0;z-index:110;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(16,27,47,.56)}.progress-overlay.show{display:flex}.progress-card{width:min(430px,100%);overflow:hidden;border-radius:18px;background:#fff;box-shadow:0 28px 80px rgba(0,0,0,.28)}.progress-head{padding:14px 18px;background:var(--navy);color:#fff;border-bottom:4px solid var(--gold);font-weight:900}.progress-body{padding:20px}.progress-message{margin-bottom:12px;color:var(--navy);font-weight:800;text-align:center}.progress-track{height:14px;overflow:hidden;border:1px solid #c8d1de;border-radius:999px;background:#edf1f5}.progress-bar{width:0;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--navy),#31537d,var(--gold));transition:width .28s ease}.progress-percent{margin-top:8px;color:var(--muted);font-size:12px;font-weight:900;text-align:center}.native-picker-proxy{position:fixed!important;margin:0!important;padding:0!important;opacity:.001!important;pointer-events:auto!important;z-index:20!important;border:0!important;cursor:pointer!important;-webkit-appearance:none!important;appearance:none!important}.picker-enabled{cursor:pointer!important;background-image:linear-gradient(45deg,transparent 50%,#162842 50%),linear-gradient(135deg,#162842 50%,transparent 50%)!important;background-position:calc(100% - 18px) 50%,calc(100% - 13px) 50%!important;background-size:5px 5px,5px 5px!important;background-repeat:no-repeat!important;padding-right:34px!important}
+.toast{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.96);background:var(--navy);color:#fff;padding:14px 18px;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.25);z-index:80;opacity:0;pointer-events:none;transition:.22s;max-width:90%;text-align:center;font-weight:800}.toast.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.date-calendar{position:fixed;z-index:130;display:none;width:min(330px,calc(100vw - 20px));overflow:hidden;border:1px solid #c8d1de;border-radius:16px;background:#fff;box-shadow:0 22px 65px rgba(16,27,47,.34);color:var(--ink)}.date-calendar.show{display:block}.date-calendar-head{display:grid;grid-template-columns:44px 1fr 44px;align-items:center;background:var(--navy);color:#fff;border-bottom:4px solid var(--gold)}.date-calendar-head button{height:46px;border:0;border-radius:0;background:transparent;color:#fff;font-size:23px;font-weight:900}.date-calendar-title{text-align:center;font-weight:900}.date-calendar-week,.date-calendar-days{display:grid;grid-template-columns:repeat(7,1fr)}.date-calendar-week{padding:9px 8px 4px;color:var(--muted);font-size:11px;font-weight:900;text-align:center}.date-calendar-days{padding:4px 8px 9px;gap:3px}.date-day{aspect-ratio:1;border:0;border-radius:9px;background:#f4f6f9;color:var(--ink);font-size:13px;font-weight:800}.date-day:hover,.date-day:focus{background:#dfe8f3;outline:2px solid var(--gold)}.date-day.outside{color:#8994a3;background:#fafbfc}.date-day.today{box-shadow:inset 0 0 0 2px var(--gold)}.date-day.selected{background:var(--navy);color:#fff}.date-calendar-actions{display:flex;justify-content:space-between;gap:8px;padding:10px 12px;border-top:1px solid var(--line);background:#fff}.date-calendar-actions button{min-height:40px;padding:8px 16px}.date-picker-open{outline:3px solid rgba(208,170,91,.35)!important;border-color:var(--gold)!important}@media(max-width:600px){.date-calendar.show{width:calc(100vw - 16px);max-width:370px;left:50%!important;top:50%!important;transform:translate(-50%,-50%)}.date-day{min-height:39px}.date-calendar-actions button{min-height:44px}}
+
+@media (max-width:900px){.app-header{width:min(100% - 14px,1240px)}.mobile-actions-toggle{display:inline-flex;margin-left:auto}.actions{width:100%}.actions.mobile-collapsed{display:none!important}.cell{grid-template-columns:1fr}.form-grid,.signature-grid{grid-template-columns:1fr}.cell,.cell:nth-child(2n),.signatory-section{border-right:0}.label,.sig-label{border-right:0;border-bottom:1px solid var(--line)}.block-header{display:none}.block-row{grid-template-columns:1fr;border-bottom:1px solid var(--line)}.block-label,.block-control{border-right:0;border-bottom:1px solid var(--line);justify-content:flex-start}.block-control:last-child{border-bottom:0}.block-control::before{content:attr(data-mobile-label);font-size:12px;font-weight:900;color:var(--navy);min-width:88px;text-transform:uppercase}.block-row.half{grid-template-columns:1fr}}
+@media (max-width:900px){.block-row{margin:10px;border:1px solid #b9c3d3;border-radius:12px;overflow:hidden;background:#fff}.block-label{display:flex!important;flex-direction:column;align-items:stretch!important;padding:0 12px 10px!important;background:#f8fafc!important}.block-label::before{display:block;margin:0 -12px 10px;padding:8px 12px;background:var(--navy);color:#fff;font-size:12px;font-weight:900;letter-spacing:.45px;text-align:center;text-transform:uppercase}.block-label:nth-child(1)::before{content:'ENGINEERING'}.block-label:nth-child(3)::before{content:'CONTRACTOR'}.block-control{padding:8px 12px 12px!important;background:#fff!important}.block-control::before{display:none!important;content:none!important}.block-control select,.block-control select.initial-input{width:100%;max-width:none;text-align:center;text-align-last:center}.block-row .block-label:nth-child(3){border-top:2px solid #b9985a}}
+@media (max-width:900px){.block-table{display:flex;flex-direction:column;padding:10px;background:#eef1f5;border-bottom:2px solid var(--line)}.block-table::before,.block-table::after{display:block;padding:10px 12px;background:var(--navy);color:#fff;border-left:6px solid var(--gold);font-size:13px;font-weight:900;letter-spacing:.55px;text-align:center;text-transform:uppercase}.block-table::before{content:'ENGINEERING — BRIEFING / REQUIREMENT';order:0}.block-table::after{content:'CONTRACTOR — WORK ACTIVITY';order:2;margin-top:14px}.block-table .block-header{display:none!important}.block-table .block-row{display:contents!important}.block-row>.block-label:nth-child(1),.block-row>.block-control:nth-child(2){order:1}.block-row>.block-label:nth-child(3),.block-row>.block-control:nth-child(4){order:3}.block-row>.block-label{margin:9px 0 0!important;padding:10px 12px!important;border:1px solid #b9c3d3!important;border-bottom:0!important;border-radius:10px 10px 0 0!important;background:#f8fafc!important}.block-row>.block-label::before{display:none!important;content:none!important}.block-row>.block-control{margin:0!important;padding:8px 12px 10px!important;border:1px solid #b9c3d3!important;border-top:0!important;border-radius:0 0 10px 10px!important;background:#fff!important}.block-row>.block-control::before{display:none!important;content:none!important}.block-row>.block-control select,.block-row>.block-control select.initial-input{width:100%;max-width:none;text-align:center;text-align-last:center}}
+@media (max-width:900px){body[data-interface-language="ar"] .block-table::before{content:'الهندسة — الإحاطة والمتطلبات'}body[data-interface-language="ar"] .block-table::after{content:'المقاول — نشاط العمل'}body[data-interface-language="ur"] .block-table::before{content:'انجینئرنگ — بریفنگ اور ضروریات'}body[data-interface-language="ur"] .block-table::after{content:'ٹھیکیدار — کام کی سرگرمی'}}
+@media (max-width:700px){.signatory-fields{grid-template-rows:auto auto}.signatory-info{min-height:0}.signatory-identity-row{grid-template-columns:1fr}.signatory-info label{margin-bottom:8px}}
+@media (max-width:620px){.app-header,.actions,.actions button,.load-draft-stack{width:100%}.app-header{margin-top:7px;padding:12px 10px}.brand-wrap{width:100%}.container{width:min(100% - 14px,1240px);margin-top:10px}.top-strip{padding:22px 16px;align-items:flex-start}.top-strip .hotel,.top-strip .permit-title{width:100%;text-align:left}.inline-two,.inline-three{grid-template-columns:1fr}textarea{min-height:120px}}
+
+.contractor-regulations{border-top:2px solid var(--line);border-bottom:2px solid var(--line);background:#fff;padding:0}
+.regulations-intro{padding:12px 16px;background:#fffaf0;color:var(--navy);font-weight:800;border-bottom:1px solid var(--line);text-align:center}
+.regulations-list{margin:0;padding:14px 22px 14px 42px;columns:1;column-gap:28px}
+.regulations-list li{margin:0 0 9px;padding-left:4px;break-inside:avoid;color:var(--ink);line-height:1.42}
+.regulations-ack{display:flex;gap:10px;align-items:flex-start;padding:12px 16px;background:#f8fafc;border-top:1px solid var(--line);font-weight:800;color:var(--navy)}
+.regulations-ack input{width:18px;height:18px;flex:0 0 auto;margin-top:1px}
+@media(max-width:620px){.regulations-list{padding-left:34px;padding-right:14px}.regulations-list li{font-size:13px}}
+
+/* Work Permit Type checkboxes */
+.permit-type-group{display:grid;grid-template-columns:repeat(2,minmax(260px,1fr));gap:10px;width:100%}
+.permit-type-option{display:grid;grid-template-columns:22px 1fr;gap:8px;align-items:start;padding:12px;border:1px solid var(--line);border-radius:14px;background:linear-gradient(145deg,#fff,#f8fafc);color:var(--navy);cursor:pointer;transition:.18s ease}
+.permit-type-option:hover{border-color:var(--gold);box-shadow:0 7px 18px rgba(16,30,54,.08);transform:translateY(-1px)}
+.permit-type-option:has(input:checked){border-color:var(--gold);background:#fff8e8!important;box-shadow:inset 4px 0 0 var(--gold)}
+.permit-type-copy{display:block;min-width:0}.permit-type-name{display:block;font-size:15px;font-weight:900}.permit-type-description{display:block;margin-top:5px;color:var(--muted);font-size:14px;font-weight:650;line-height:1.45}
+.permit-type-option input[type=checkbox]{width:17px;height:17px;flex:0 0 auto;margin:0}
+.permit-type-other-input{grid-column:1/-1;max-width:none}
+@media(max-width:720px){.permit-type-group{grid-template-columns:1fr}.permit-type-name{font-size:12.5px}}
+
+/* Read-only field styling (Property Name) */
+input[readonly]{background:#f3f1ea;color:var(--muted);cursor:not-allowed}
+
+/* Half-width emergency row after removing contractor mobile field */
+.block-row.half{grid-template-columns:1.1fr .32fr}
+
+.regulation-critical{color:#d64545;font-weight:900}
+
+@media print{body{background:#fff}.app-header,.notice,.toast,.modal{display:none!important}.container{max-width:none;margin:0;padding:0}.form-shell{box-shadow:none;border-radius:0;border:0}button{display:none!important}input,select,textarea{border:0;box-shadow:none;padding:3px}.section-title,.top-strip{print-color-adjust:exact;-webkit-print-color-adjust:exact}}
+@page{size:A4 portrait;margin:5mm}
+@media print{body.finalized-html .container{display:none!important}body.finalized-html .report-page{display:block!important;position:static!important;left:auto!important;top:auto!important;width:200mm!important;padding:0!important;background:#fff!important}body.finalized-html .pdf-sheet{width:200mm!important;min-height:287mm!important;height:287mm!important;border:0!important;page-break-after:always!important;break-after:page!important}body.finalized-html .pdf-sheet:last-child{page-break-after:auto!important;break-after:auto!important}body.finalized-html .pdf-sheet+.pdf-sheet{margin-top:0!important}}
+
+/* Final professional frame + no underline anywhere */
+a, u, .block-label u, .pdf-bg u, .pdf-lab u, .pdf-val u, .pdf-section u {
+  text-decoration: none !important;
+}
+.container{
+  border: 1px solid rgba(22,40,66,.16);
+  border-radius: 28px;
+  padding: 14px;
+  background: rgba(255,255,255,.42);
+  box-shadow: 0 18px 42px rgba(16,30,54,.11);
+}
+.form-shell{
+  border: 2px solid var(--navy) !important;
+  border-radius: 26px !important;
+  box-shadow: 0 22px 48px rgba(16,30,54,.16) !important;
+  background: #fffdf8 !important;
+}
+.form-shell::before{
+  content:"";
+  display:block;
+  height:6px;
+  background: linear-gradient(90deg, var(--navy) 0%, var(--gold) 50%, var(--navy) 100%);
+}
+.top-strip{
+  border-radius:0 !important;
+  border-bottom: 1px solid rgba(208,170,91,.95) !important;
+}
+.section-title{
+  border-top: 1px solid var(--line) !important;
+  border-bottom: 1px solid var(--line) !important;
+}
+@media(max-width:620px){
+  .container{width:min(100% - 14px,1240px);padding:8px;border-radius:20px;}
+  .form-shell{border-radius:20px !important;}
+}
+
+/* Conrad Worldwide corporate finish (screen form only) */
+body{background:radial-gradient(circle at top left,rgba(185,152,90,.16),transparent 32%),linear-gradient(135deg,#f7f2e9 0%,#f8fafc 44%,#eef2f7 100%)}
+.app-header{border-color:#d7dde7;border-radius:22px;background:rgba(255,255,255,.97);box-shadow:0 20px 55px rgba(16,27,47,.13)}
+.logo-box,.btn-primary{background:linear-gradient(135deg,#101b2f,#1b2d4a);color:#fff}
+.btn-secondary{background:#fff;border-color:#d7dde7}.btn-danger{background:#a32118;border-color:#861912;color:#fff}
+.container{border-color:rgba(16,27,47,.16);background:rgba(255,255,255,.62);box-shadow:0 20px 55px rgba(16,27,47,.13)}
+.form-shell{border-color:#101b2f!important;background:#fff!important;box-shadow:0 26px 70px rgba(16,27,47,.14)!important}
+.top-strip{background:linear-gradient(135deg,#101b2f,#203451 62%,#111827)!important;border-bottom:4px solid #b9985a!important}
+.section-title{background:#101b2f!important;color:#fff!important;box-shadow:inset 7px 0 0 #b9985a!important;border-color:#101b2f!important}
+.label,.block-label,.sig-label,.regulations-intro{background:#f8fafc!important;color:#101b2f!important}
+.input-area,.block-control,.sig-content,.description-wrap,.contractor-regulations{background:#fff!important}
+input,select,textarea{border-color:#d7dde7;background:#f2f2f7;border-radius:14px}input:hover,select:hover,textarea:hover{background:#eef1f7}input:focus,select:focus,textarea:focus{border-color:#b9985a;box-shadow:0 0 0 4px rgba(185,152,90,.17);background:#fff}
+.warning,.regulations-ack{background:#f5efe2!important;color:#101b2f!important;border-color:#d7c49a!important}
+.permit-type-cell{display:block!important;background:#fff!important}
+.permit-type-cell>.label{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 16px;border:0;border-bottom:1px solid #d7dde7;background:#101b2f!important;color:#fff!important;font-size:16px;letter-spacing:.45px;text-transform:uppercase}.permit-reference{font-size:12px;font-weight:900;letter-spacing:.7px;white-space:nowrap;color:#fff}
+.permit-type-cell>.input-area{display:block;padding:12px 14px}
+.permit-type-group{grid-template-columns:repeat(2,minmax(260px,1fr));gap:10px}
+.permit-type-option{min-height:82px;padding:9px 11px;border:1px solid #d7dde7;border-radius:15px;background:linear-gradient(180deg,#fff,#f8fafc);box-shadow:0 6px 16px rgba(15,23,42,.045)}
+.permit-type-option:hover{border-color:#b9985a;box-shadow:0 12px 26px rgba(16,27,47,.10)}
+.permit-type-option:has(input:checked){border-color:#b9985a;background:#fff8e8!important;box-shadow:inset 4px 0 0 #b9985a,0 8px 18px rgba(16,27,47,.06)}
+.permit-type-other-input{margin-top:10px;background:#fff}
+.regulation-critical{color:#a32118!important}
+.field-section{border-bottom:1px solid #d7dde7;background:#fff}.field-section-header{padding:13px 16px;background:#101b2f;color:#fff;border-left:7px solid #b9985a;font-size:15px;font-weight:900;letter-spacing:.35px;text-transform:uppercase}.field-section-tray{padding:12px 14px;background:#fff}.field-section-tray textarea{min-height:112px;height:auto;overflow-y:hidden;resize:none;transition:height .12s ease}
+@media(max-width:620px){.permit-type-group{grid-template-columns:1fr}.permit-type-option{min-height:auto}}
+
+/* =========================================================
+   PDF REPORT — single consolidated table design
+   (replaces all prior scattered .pdf-* overrides)
+   ========================================================= */
+.report-page{position:absolute;left:-99999px;top:0;width:794px;padding:20px;background:#fdfaf3;font-family:Arial,Helvetica,sans-serif}
+.report-page *{box-sizing:border-box;text-decoration:none!important;-webkit-font-smoothing:antialiased;text-rendering:geometricPrecision}
+.pdf-sheet{width:754px;min-height:1080px;padding:0;background:#fff;position:relative;overflow:hidden;border:1px solid #cfd9e6}
+.pdf-sheet+.pdf-sheet{margin-top:22px}
+
+.pdf-brand-head{border:2px solid var(--navy)}
+.pdf-property-band{padding:7px 12px;background:#f2ecdd;color:var(--navy);border-bottom:2px solid var(--gold);text-align:center;font-size:16px;font-weight:900;letter-spacing:.8px}
+.pdf-report-title{padding:7px 12px;background:var(--navy);color:#fff;text-align:center;font-size:15px;font-weight:900;letter-spacing:1px}
+
+.pdf-section{margin-top:10px;background:var(--navy);color:#fff;box-shadow:inset 7px 0 0 var(--gold);border:1.5px solid var(--navy);padding:9px 14px;font-size:12px;font-weight:900;letter-spacing:.45px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.pdf-subsection{padding:8px 12px;background:#f2ecdd;color:var(--navy);border:1.5px solid var(--navy);border-top:0;font-size:11px;font-weight:900;letter-spacing:.5px;display:flex;align-items:center;justify-content:space-between}.pdf-reference{font-size:9.5px;letter-spacing:.5px}
+
+/* Permit type cards */
+.pdf-permits{display:grid;grid-template-columns:1fr 1fr;gap:8px;border:1.5px solid var(--navy);border-top:0;padding:10px;background:#f8fafc}
+.pdf-permit{display:grid;grid-template-columns:20px 1fr;gap:8px;padding:8px;border:1px solid #b9c3d3;background:#fff;min-height:50px}
+.pdf-permit.pdf-chosen{border:1.5px solid #9aa8ba!important;background:rgb(238,241,244)!important;background-color:rgb(238,241,244)!important;background-image:none!important;box-shadow:none!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.pdf-tick{width:15px;height:15px;border:1.5px solid var(--navy);border-radius:3px;display:grid;place-items:center;font-size:11px;font-weight:900;color:#fff;background:#fff}
+.pdf-permit.pdf-chosen .pdf-tick{background:var(--navy)}
+.pdf-permit-name{font-size:10.5px;font-weight:900;color:var(--navy)}
+.pdf-permit-description{font-size:9.4px;line-height:1.32;color:#4b5975;margin-top:3px}
+
+/* Key/value info table */
+.pdf-grid{display:grid;grid-template-columns:1fr 1fr;border:1.5px solid var(--navy);border-top:0}
+.pdf-cell{display:grid;grid-template-columns:44% 56%;border-bottom:1px solid #b9c3d3}
+.pdf-cell:nth-child(odd){border-right:1px solid #b9c3d3}
+.pdf-grid .pdf-cell:nth-last-child(-n+2){border-bottom:0}
+.pdf-lab{background:#f2ecdd;color:var(--navy);border-right:1px solid #b9c3d3;padding:6px 9px;font-size:9.3px;font-weight:900;text-transform:uppercase;letter-spacing:.25px;line-height:1.25;display:flex;align-items:center}
+.pdf-val{background:#fff;padding:6px 9px;font-size:11px;font-weight:600;color:var(--ink);min-height:30px;display:flex;align-items:center;word-break:break-word}
+
+/* Free-text sections */
+.pdf-text-section{border:1.5px solid var(--navy);border-top:0;background:#fff}
+.pdf-text-head{padding:7px 10px;background:#f2ecdd;color:var(--navy);border-bottom:1px solid #b9c3d3;font-size:10px;font-weight:900;letter-spacing:.4px;text-transform:uppercase}
+.pdf-text-value{min-height:44px;padding:9px 10px;color:var(--ink);font-size:10.5px;line-height:1.4;word-break:break-word}
+
+/* Briefing / activity matrix */
+.pdf-block-header,.pdf-block-row{display:grid;grid-template-columns:1fr .28fr 1fr .28fr;border:1.5px solid var(--navy);border-top:0}
+.pdf-block-header div{padding:6px;font-size:8.8px;line-height:1.2;border-right:1px solid rgba(255,255,255,.3);background:var(--navy);color:#fff;font-weight:900;text-align:center;text-transform:uppercase}
+.pdf-block-header div:last-child{border-right:0}
+.pdf-block-row{border-top:0}
+.pdf-block-row div{padding:6px;font-size:9.4px;line-height:1.24;border-right:1px solid #b9c3d3;background:#fff}.pdf-block-answer{display:flex;align-items:center;justify-content:center;text-align:center;font-weight:900;color:var(--navy)}
+.pdf-block-row div:last-child{border-right:0}
+.pdf-block-row .pdf-bg{background:#f2ecdd;font-weight:700;color:var(--navy)}
+.pdf-block-row:nth-child(odd) div:not(.pdf-bg){background:#fbfbfe}
+
+/* Regulations */
+.pdf-regulations{border:1.5px solid var(--navy);border-top:0;background:#fff;padding:8px 11px}
+.pdf-regulations ol{margin:0;padding-left:18px}
+.pdf-regulations li{font-size:9.5px!important;line-height:1.32!important;margin:0 0 5px;color:var(--ink)}
+.pdf-regulation-critical{color:#a32118!important;font-weight:900}
+.pdf-regulations-note{margin-top:7px;padding:7px 9px;background:#f2ecdd;border:1.5px solid var(--navy);font-size:9.5px;font-weight:900;color:var(--navy);text-align:center}
+
+/* Signatures */
+.pdf-sig-grid{display:grid;grid-template-columns:1fr 1fr;border:1.5px solid var(--navy);border-top:0}.pdf-signatory{border-right:1px solid #b9c3d3;display:flex;flex-direction:column}.pdf-signatory:last-child{border-right:0}.pdf-signatory-head{padding:7px 9px;background:var(--navy);color:#fff;font-size:10px;font-weight:900;text-align:center;text-transform:uppercase}.pdf-signatory-info{height:102px;background:#fff;border-bottom:1px solid #b9c3d3}.pdf-signatory-info.single{display:flex;align-items:center}.pdf-signatory-info.single .pdf-signatory-row{width:100%;border-top:1px solid #b9c3d3}.pdf-signatory-row{display:grid;grid-template-columns:38% 62%;height:34px;border-bottom:1px solid #b9c3d3}.pdf-signatory-info .pdf-signatory-row:last-child{border-bottom:0}.pdf-signature-label{padding:6px 9px;background:#f2ecdd;color:var(--navy);border-bottom:1px solid #b9c3d3;font-size:9.3px;font-weight:900;text-align:center}.pdf-signature-large{min-height:76px;padding:7px;display:flex;align-items:center;justify-content:center;background:#fff}
+.pdf-sig-lab{background:#f2ecdd;color:var(--navy);border-right:1px solid #b9c3d3;padding:6px 9px;font-size:9.3px;font-weight:900;line-height:1.25;display:flex;align-items:center}
+.pdf-sig-val{padding:6px 9px;font-size:10px;background:#fff;display:flex;flex-direction:column;justify-content:center}
+.pdf-sign-line{height:24px;border-bottom:1px solid var(--navy);margin-top:6px}
+.pdf-sign-img{max-width:100%;max-height:64px}
+
+/* Post-completion table */
+.pdf-complete{display:grid;grid-template-columns:1fr 1fr;border:1.5px solid var(--navy);border-top:0}.pdf-completion-left{border-right:1px solid var(--navy)}.pdf-completion-left .pdf-block-row{grid-template-columns:1.2fr .43fr!important;border-left:0;border-right:0;border-bottom:1px solid var(--navy)}.pdf-completion-left .pdf-block-row:last-child{border-bottom:1.5px solid var(--navy)!important}.pdf-completion-left .pdf-block-row:last-child>div{border-bottom:0}.pdf-completion-right{display:flex;flex-direction:column}.pdf-completion-row{display:grid;grid-template-columns:45% 55%;min-height:38px;border-bottom:1px solid var(--navy)}.pdf-completion-row .pdf-lab{border-right:1px solid var(--navy)}.pdf-completion-row .pdf-val{border:0}.pdf-completion-sign-label{padding:6px 9px;background:#f2ecdd;color:var(--navy);border-bottom:1px solid var(--navy);font-size:9.5px;font-weight:900;text-align:center}.pdf-completion-sign-box{min-height:62px;padding:6px;display:flex;align-items:center;justify-content:center;background:#fff}
+.pdf-fill-line{height:28px;border-bottom:1px solid var(--navy);margin:2px 0;background:#fff}
+.completion-panel{display:none;margin-top:18px;border:2px solid var(--navy);background:#fff;box-shadow:0 12px 32px rgba(22,40,66,.12)}
+.completion-panel.active{display:block}.completion-intro{padding:12px 16px;background:#f7f1e4;border-bottom:1px solid var(--gold);color:var(--navy);font-weight:750}
+.completion-grid{display:grid;grid-template-columns:1fr 1fr}.completion-checks,.completion-details{padding:14px}.completion-checks{border-right:1px solid var(--line)}
+.completion-row{display:grid;grid-template-columns:1fr 130px;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);font-weight:700;color:var(--navy)}
+.completion-row select,.completion-details input{width:100%;min-height:40px;border:1px solid #9aa8ba;border-radius:8px;padding:8px 10px;background:#fff;text-align:center;text-align-last:center}.completion-details label{display:block;margin-bottom:10px;text-align:center;color:var(--navy);font-weight:900}.completion-details .sign-pad{height:125px}.label.person-site-label{color:#c00000!important}
+.review-only{display:none!important}.review-mode .review-only{display:inline-flex!important}.review-mode #preCommencementHeading{display:none!important}.review-mode .actions .draft-action,.review-mode .actions .clear-action{display:none}.review-mode .notice{background:#eef4fa;color:var(--navy);border-color:#b6c7dc}
+.finalized-html .review-only{display:none!important}.finalized-html #preCommencementHeading{display:none!important}.finalized-html #completionPanel input:disabled,.finalized-html #completionPanel select:disabled{opacity:1;color:#26364d;background:#edf1f5;-webkit-text-fill-color:#26364d;cursor:not-allowed}.finalized-html #completionSig{pointer-events:none;background:#edf1f5}.finalized-html #completionPanel .btn-small{display:none}
+.review-mode #permitForm input:disabled,.review-mode #permitForm textarea:disabled,.review-mode #permitForm select:disabled{opacity:1;color:#26364d;background:#edf1f5;-webkit-text-fill-color:#26364d;cursor:not-allowed}
+.review-mode #permitForm .sign-pad{pointer-events:none;background:#edf1f5}.review-mode #permitForm .btn-small{display:none}
+.pdf-completion-value{font-weight:900;color:var(--navy);text-align:center}.pdf-completion-signature{max-height:45px;max-width:100%}
+@media(max-width:800px){.completion-grid{grid-template-columns:1fr}.completion-checks{border-right:0;border-bottom:1px solid var(--line)}}
+
+.pdf-footer{position:absolute;left:18px;right:18px;bottom:10px;border-top:1px solid var(--gold);padding-top:5px;display:flex;justify-content:space-between;color:#596577;font-size:8px;font-weight:700}
+
+/* Keep all seven calendar columns inside the popup on every viewport. */
+.date-calendar{max-width:calc(100vw - 20px)}
+.date-calendar-head{grid-template-columns:44px minmax(0,1fr) 44px}
+.date-calendar-week,.date-calendar-days{width:100%;grid-template-columns:repeat(7,minmax(0,1fr));overflow:hidden}
+.date-calendar-week>*,.date-calendar-days>*{width:100%;min-width:0;max-width:100%;overflow:hidden}
+.date-day{width:100%;min-width:0;max-width:100%;padding:0;margin:0}
+@media(min-width:601px){.date-calendar{width:min(320px,calc(100vw - 24px))}}
+</style>
+</head>
+<body>
+<header class="app-header">
+  <div class="brand-wrap">
+    <div class="logo-box">PTW</div>
+    <div class="header-title"><h1>PERMIT TO WORK</h1><p id="workflowSubtitle">Complete the permit, then generate the controlled completion HTML</p></div>
+  </div>
+  <div class="actions">
+    <label id="languageControl" class="language-control"><span id="languageLabel">Interface</span><select id="interfaceLanguage" onchange="setInterfaceLanguage(this.value)"><option value="en">English</option><option value="ar">العربية</option><option value="ur">اردو</option></select><small id="languageNote" class="language-note">Entries remain English</small></label>
+    <label id="predictionControl" class="prediction-control"><input id="autoPredictionToggle" type="checkbox" checked><span>Online Prediction</span><small>Work + PPE only</small></label>
+    <div class="load-draft-stack"><button id="loadDraftButton" class="btn-secondary load-draft-action" type="button" onclick="loadDraft()" style="display:inline-flex!important;visibility:visible!important;opacity:1!important">Load Draft</button><span id="autoSaveStatus" class="auto-save-status" role="status" aria-live="polite"></span></div>
+    <button id="primaryWorkflowButton" class="btn-primary" onclick="handlePrimaryAction()">Generate Permit</button>
+    <button class="btn-danger clear-action" onclick="clearForm()">Clear All</button>
+  </div>
+  <button id="mobileActionsToggle" class="btn-secondary mobile-actions-toggle" type="button" onclick="toggleMobileActions()">Show Actions</button>
+</header>
+<main class="container">
+  <div id="workflowNotice" class="notice">Complete and sign the permit before work starts. Generate the Completion HTML and keep that file with the permit; after the work is finished, open it, complete the final section, and generate the final PDF.</div>
+  <form id="permitForm" class="form-shell" autocomplete="off">
+    <div class="top-strip">
+      <div class="hotel">CONRAD<br><span style="font-size:11px;letter-spacing:2px">ABU DHABI ETIHAD TOWERS</span></div>
+      <div class="permit-title">PERMIT TO WORK</div>
+    </div>
+    <div id="preCommencementHeading" class="section-title">Section must be completed and signed prior to commencement of work</div>
+    <div class="form-grid">
+      <div class="cell full-row permit-type-cell"><div class="label"><span>Work Permit Type *</span><span class="permit-reference">REF:CAD-OSHMS-009-REV03</span></div><div class="input-area"><div class="permit-type-group" role="group" aria-label="Work Permit Type">
+        <label class="permit-type-option"><input type="checkbox" id="permitTypeGeneral" data-label="Work Permit Type" value="General Work Permit"><span class="permit-type-copy"><span class="permit-type-name">General Work Permit</span><span class="permit-type-description">Routine maintenance, installation, repair or other general work not covered by a specialist permit.</span></span></label>
+        <label class="permit-type-option"><input type="checkbox" id="permitTypeElectrical" data-label="Work Permit Type" value="Electrical Work Permit"><span class="permit-type-copy"><span class="permit-type-name">Electrical Work Permit</span><span class="permit-type-description">Work on electrical systems, distribution boards, circuits, isolation points or energized equipment.</span></span></label>
+        <label class="permit-type-option"><input type="checkbox" id="permitTypeHotWork" data-label="Work Permit Type" value="Hot Work"><span class="permit-type-copy"><span class="permit-type-name">Hot Work</span><span class="permit-type-description">Welding, cutting, brazing, soldering, grinding or any activity producing heat, sparks or flame.</span></span></label>
+        <label class="permit-type-option"><input type="checkbox" id="permitTypeHeights" data-label="Work Permit Type" value="Working at Heights"><span class="permit-type-copy"><span class="permit-type-name">Working at Heights</span><span class="permit-type-description">Work at 2 metres or above, including ladders, scaffolds, elevated platforms or exposed edges.</span></span></label>
+        <label class="permit-type-option"><input type="checkbox" id="permitTypeOther" data-label="Work Permit Type" value="Other" onchange="toggleOtherPermitType()"><span class="permit-type-copy"><span class="permit-type-name">Other / Supplementary Permit</span><span class="permit-type-description">Select when another controlled activity or supplementary authorization is required and describe it below.</span></span></label>
+        <input type="text" id="permitTypeOtherText" class="permit-type-other-input" placeholder="Specify other permit type" data-label="Other Work Permit Type" style="display:none" />
+      </div></div></div>
+      <div class="cell"><div class="label">Company Name *</div><div class="input-area"><input id="companyName" data-label="Company Name" required /></div></div>
+      <div class="cell"><div class="label">Property Name *</div><div class="input-area"><input id="propertyBuilding" data-label="Property Name" value="Conrad Abu Dhabi Etihad Towers" readonly required /></div></div>
+      <div class="cell"><div class="label">Name of Senior Company Person | Emirates ID# *</div><div class="input-area"><div class="inline-two"><input id="seniorName" placeholder="Print name clearly" data-label="Senior Company Person Name" required /><input id="seniorId" placeholder="Emirates ID or Passport" data-label="Senior Company Person Emirates ID or Passport" required /></div></div></div>
+      <div class="cell"><div class="label">Place of Work *</div><div class="input-area"><input id="roomCode" data-label="Place of Work" required /></div></div>
+      <div class="cell"><div class="label">Number of Persons on this Permit *</div><div class="input-area"><input id="personsNo" type="number" min="1" data-label="Number of Persons on this Permit" required /></div></div>
+      <div class="cell"><div class="label person-site-label" style="color:#c00000!important">Person On Site & Phone Number *</div><div class="input-area"><div class="inline-two"><input id="personOnSite" placeholder="Print name" data-label="Person On Site" required /><input id="personOnSitePhone" placeholder="Phone Number" inputmode="numeric" pattern="[0-9]*" autocomplete="tel" data-label="Person On Site Phone Number" required /></div></div></div>
+      <div class="cell"><div class="label">Asset Code if Applicable</div><div class="input-area"><input id="assetCode" data-label="Asset Code" /></div></div>
+      <div class="cell"><div class="label">LPO Number</div><div class="input-area"><input id="lpoNo" data-label="LPO Number" /></div></div>
+      <div class="cell"><div class="label">VALID FROM (Time/Date) *</div><div class="input-area"><div class="inline-two"><div class="picker-field time-picker-field"><input id="validTime" type="text" inputmode="none" readonly placeholder="--:--" data-label="Valid From Time" required /><button type="button" class="picker-trigger" aria-label="Open valid-from time" onclick="openTimePicker($('validTime'))"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></button></div><div class="picker-field"><input id="validDate" type="text" inputmode="none" readonly placeholder="dd/mmm/yyyy" data-label="Valid From Date" required /><button type="button" class="picker-trigger" aria-label="Open valid-from calendar" onclick="openDateCalendar($('validDate'))"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg></button></div></div></div></div>
+      <div class="cell"><div class="label">PERMIT EXPIRES (Time/Date) *</div><div class="input-area"><div class="inline-two"><div class="picker-field time-picker-field"><input id="expireTime" type="text" inputmode="none" readonly placeholder="--:--" data-label="Permit Expiry Time" required /><button type="button" class="picker-trigger" aria-label="Open expiry time" onclick="openTimePicker($('expireTime'))"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></button></div><div class="picker-field"><input id="expireDate" type="text" inputmode="none" readonly placeholder="dd/mmm/yyyy" data-label="Permit Expiry Date" required /><button type="button" class="picker-trigger" aria-label="Open expiry calendar" onclick="openDateCalendar($('expireDate'))"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg></button></div></div></div></div>
+    </div>
+    <section class="field-section"><div class="field-section-header">Description of Work to Be Carried Out *</div><div class="field-section-tray"><textarea id="workDescription" placeholder="Describe the work scope, exact location, work method, tools and equipment, affected systems, required isolations, and expected result." data-label="Description of Work to Be Carried Out" required></textarea><div id="workDescriptionPrediction" class="prediction-strip" aria-live="polite"><span class="prediction-caption">Suggested words</span><div class="prediction-words"></div><span class="prediction-hint">Tap a word or press Tab for the first</span></div></div></section>
+    <section class="field-section"><div class="field-section-header">Personal Protective Equipment (PPE) Used *</div><div class="field-section-tray"><textarea id="ppeUsed" placeholder="List PPE used, e.g. safety helmet, gloves, safety boots, harness, goggles" data-label="Personal Protective Equipment (PPE) Used" required></textarea><div id="ppeUsedPrediction" class="prediction-strip" aria-live="polite"><span class="prediction-caption">Suggested words</span><div class="prediction-words"></div><span class="prediction-hint">Tap a word or press Tab for the first</span></div></div></section>
+    <div class="block-table">
+      <div class="block-header"><div>Briefing / Requirement</div><div>Engineering</div><div>Work Activity</div><div>Contractor</div></div>
+      <div class="block-row"><div class="block-label">The contractor has been briefed on ACTION IN EVEN OF FIRE!</div><div class="block-control" data-mobile-label="Engineering"><select class="initial-input" id="briefFire" data-label="Fire Briefing Engineering Approval"><option value="">Select</option><option>Yes</option><option>No</option></select></div><div class="block-label">The Contractor will be welding, brazing, soldering or other Hot Works</div><div class="block-control" data-mobile-label="Contractor"><select id="hotWorks" data-label="Hot Works"><option value="">Select</option><option>Yes</option><option>No</option></select></div></div>
+      <div class="block-row"><div class="block-label">The contractor has been briefed on PPE, Dress & Behavior Codes.</div><div class="block-control" data-mobile-label="Engineering"><select class="initial-input" id="briefPpe" data-label="PPE Briefing Engineering Approval"><option value="">Select</option><option>Yes</option><option>No</option></select></div><div class="block-label">The Contractor will be working on the Power & Distribution System</div><div class="block-control" data-mobile-label="Contractor"><select id="powerSystem" data-label="Power & Distribution System"><option value="">Select</option><option>Yes</option><option>No</option></select></div></div>
+      <div class="block-row"><div class="block-label">The contractor has been briefed on Ablution, Eating and Hours of Work.</div><div class="block-control" data-mobile-label="Engineering"><select class="initial-input" id="briefHours" data-label="Ablution/Eating/Hours Engineering Approval"><option value="">Select</option><option>Yes</option><option>No</option></select></div><div class="block-label">The Contractor will be working on the Domestic Water System</div><div class="block-control" data-mobile-label="Contractor"><select id="waterSystem" data-label="Domestic Water System"><option value="">Select</option><option>Yes</option><option>No</option></select></div></div>
+      <div class="block-row"><div class="block-label">The contractor has been briefed on Security Regulations whilst on site.</div><div class="block-control" data-mobile-label="Engineering"><select class="initial-input" id="briefSecurity" data-label="Security Regulations Engineering Approval"><option value="">Select</option><option>Yes</option><option>No</option></select></div><div class="block-label">The Contractor will be working on the Fire Detection/Fire Protection Systems</div><div class="block-control" data-mobile-label="Contractor"><select id="fireProtection" data-label="Fire Detection/Protection Systems"><option value="">Select</option><option>Yes</option><option>No</option></select></div></div>
+      <div class="block-row"><div class="block-label">The contractor has been briefed on access to site and storage of materials.</div><div class="block-control" data-mobile-label="Engineering"><select class="initial-input" id="briefAccess" data-label="Access and Storage Engineering Approval"><option value="">Select</option><option>Yes</option><option>No</option></select></div><div class="block-label">The Contractor will be Working At Heights (2m or More)</div><div class="block-control" data-mobile-label="Contractor"><select id="heights" data-label="Working At Heights"><option value="">Select</option><option>Yes</option><option>No</option></select></div></div>
+      <div class="block-row"><div class="block-label">The contractor has been briefed on Safety Regulations on reverse of this form.</div><div class="block-control" data-mobile-label="Engineering"><select class="initial-input" id="briefSafety" data-label="Safety Regulations Engineering Approval"><option value="">Select</option><option>Yes</option><option>No</option></select></div><div class="block-label">The Contractor will be working in Confined Spaces</div><div class="block-control" data-mobile-label="Contractor"><select id="confinedSpaces" data-label="Confined Spaces"><option value="">Select</option><option>Yes</option><option>No</option></select></div></div>
+    </div>
+
+    <div class="section-title">Contractors Safety Regulations</div>
+    <section class="contractor-regulations">
+      <div class="regulations-intro">The contractor and all contractor personnel must comply with the following safety regulations throughout the work.</div>
+      <ol class="regulations-list">
+        <li>Contractors will ensure that their personnel are provided with appropriate safety equipment for the work being carried out.</li>
+        <li>Work areas will be cordoned off with suitable barriers where necessary. Barriers must prevent unauthorised access to the work area. Danger tape is not permitted for cordoning off work areas.</li>
+        <li>Appropriate warning signs will be displayed next to the cordoned-off work area.</li>
+        <li>Contractors will ensure that their personnel are briefed on the safe use of all tools and equipment required to carry out the work.</li>
+        <li>Contractors will ensure that all tools and equipment in use are safe and fit for purpose.</li>
+        <li>Any equipment requiring certification, including lifting equipment and air-compressor vessels, must have current valid certification.</li>
+        <li>All electric power tools must be fitted with appropriate guards and electrical plugs.</li>
+        <li>Electrical extension leads must be fitted with appropriate plugs and be free from cuts and kinks.</li>
+        <li>Before work begins, contractors must provide a list and all required Safety Data Sheets (SDS/MSDS) for hazardous or toxic substances brought onto the site. Such substances must be stored in accordance with good practice.</li>
+        <li>Smoking and eating on site are permitted only in the designated areas.</li>
+        <li>The work area must be kept clean and tidy at all times. Fire and safety hazards, including oily rags and flammable materials, must be removed promptly. The contractor is responsible for removing all waste materials from the site.</li>
+        <li>When working in or around swimming pools, Conrad will provide lifeguard cover. No work may be carried out without a lifeguard present.</li>
+        <li>When using a ladder, the contractor must ensure that it is in good condition and that a second person secures the bottom of the ladder at all times while it is in use.</li>
+        <li class="regulation-critical">IMPORTANT! The team member signing below must ensure that all relevant systems & equipment are locked out in accordance with policy & guidelines, and that all supplementary permits have been issued.</li>
+      </ol>
+      <label class="regulations-ack"><input id="safetyRegulationsAck" type="checkbox" data-label="Contractor Safety Regulations Acknowledgement" required> <span>I confirm that the contractor has read, understood, and agreed to comply with all Contractor Safety Regulations listed above.</span></label>
+    </section>
+    <div class="signature-grid">
+      <section class="signatory-section"><div class="signatory-header">Senior Contractor Representative</div><div class="signatory-fields"><div class="signatory-info single"><label><span>Issue Date</span><div class="picker-field"><input id="issueDate" type="text" inputmode="none" readonly placeholder="dd/mmm/yyyy" data-label="Issue Date"><button type="button" class="picker-trigger" aria-label="Open issue-date calendar" onclick="openDateCalendar($('issueDate'))"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg></button></div></label></div><div class="signature-field">Signature *<canvas id="contractorSig" class="sign-pad" data-label="Signature of Senior Contractor Representative"></canvas><button type="button" class="btn-secondary btn-small" onclick="clearSignature('contractorSig')">Clear Signature</button></div></div></section>
+      <section class="signatory-section"><div class="signatory-header">Responsible Conrad Team Member</div><div class="signatory-fields"><div class="signatory-info signatory-identity-row"><label><span>Name *</span><input id="responsibleName" placeholder="Print name" data-label="Responsible Conrad Team Member Name" required></label><label><span>Employee ID *</span><input id="responsibleId" placeholder="Employee ID" data-label="Responsible Conrad Team Member Employee ID" required></label><label><span>Designation *</span><input id="responsibleDesignation" placeholder="Designation" data-label="Responsible Conrad Team Member Designation" required></label></div><div class="signature-field">Signature *<canvas id="conradSig" class="sign-pad" data-label="Signature of Responsible Conrad Team Member"></canvas><button type="button" class="btn-secondary btn-small" onclick="clearSignature('conradSig')">Clear Signature</button></div></div></section>
+    </div></form>
+    <section id="completionPanel" class="completion-panel" aria-label="Section to be completed after work">
+      <div class="section-title">Section must be completed and signed after completion of work</div>
+      <div class="completion-intro">The issued permit above is locked and read-only. Complete every item below after the work has finished.</div>
+      <div class="completion-grid">
+        <div class="completion-checks">
+          <div class="completion-row"><label for="completeSatisfactory">Work completed satisfactorily *</label><select id="completeSatisfactory" data-label="Work completed satisfactorily"><option value="">Select</option><option>Yes</option><option>No</option></select></div>
+          <div class="completion-row"><label for="completeDocuments">Drawings, O&amp;M Manuals and Guarantees received *</label><select id="completeDocuments" data-label="Drawings, O&M Manuals and Guarantees received"><option value="">Select</option><option>Yes</option><option>No</option></select></div>
+          <div class="completion-row"><label for="completePermits">All supplementary permits closed *</label><select id="completePermits" data-label="All supplementary permits closed"><option value="">Select</option><option>Yes</option><option>No</option></select></div>
+          <div class="completion-row"><label for="completeDebris">All work debris cleared from site *</label><select id="completeDebris" data-label="All work debris cleared from site"><option value="">Select</option><option>Yes</option><option>No</option></select></div>
+        </div>
+        <div class="completion-details">
+          <label><span class="field-caption">Name of Responsible Conrad Team Member *</span><input id="completionName" data-label="Completion Responsible Team Member Name"></label>
+          <label><span class="field-caption">Employee ID *</span><input id="completionId" data-label="Completion Responsible Team Member Employee ID"></label>
+          <label><span class="field-caption">Designation *</span><input id="completionDesignation" data-label="Completion Responsible Team Member Designation"></label>
+          <label><span class="field-caption">Completion Date *</span><div class="picker-field"><input id="completionDate" type="text" inputmode="none" readonly placeholder="dd/mmm/yyyy" data-label="Completion Date"><button type="button" class="picker-trigger" aria-label="Open completion-date calendar" onclick="openDateCalendar($('completionDate'))"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg></button></div></label>
+          <label><span class="field-caption">Signature of Responsible Conrad Team Member *</span><canvas id="completionSig" class="sign-pad" data-label="Completion Signature"></canvas></label>
+          <button type="button" class="btn-secondary btn-small" onclick="clearSignature('completionSig')">Clear Signature</button>
+        </div>
+      </div>
+    </section>
+</main>
+<script id="embeddedPermitData" type="application/json"></script>
+<div id="reportMount" class="report-page"></div>
+<div id="dateCalendar" class="date-calendar" role="dialog" aria-modal="false" aria-label="Select date"><div class="date-calendar-head"><button type="button" id="calendarPrev" aria-label="Previous month">‹</button><div id="calendarTitle" class="date-calendar-title"></div><button type="button" id="calendarNext" aria-label="Next month">›</button></div><div class="date-calendar-week"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div><div id="calendarDays" class="date-calendar-days"></div><div class="date-calendar-actions"><button type="button" class="btn-secondary" id="calendarClose">Close</button><button type="button" class="btn-primary" id="calendarToday">Today</button></div></div>
+<div id="timePickerPopup" class="time-picker-popup" role="dialog" aria-modal="false" aria-label="Select time"><div class="time-picker-head">Select Time</div><div class="time-picker-body"><label>Hour<select id="timePickerHour"></select></label><label>Minute<select id="timePickerMinute"></select></label><label>AM / PM<select id="timePickerPeriod"><option>AM</option><option>PM</option></select></label></div><div class="time-picker-actions"><button type="button" class="btn-secondary" id="timePickerClose">Close</button><button type="button" class="btn-primary" id="timePickerSet">Set Time</button></div></div>
+<div id="modal" class="modal"><div class="modal-card"><div class="modal-head" id="modalTitle">System Message</div><div class="modal-body" id="modalBody"></div><div class="modal-foot"><button class="btn-primary" onclick="closeModal()">OK</button></div></div></div>
+<div id="clearConfirm" class="clear-confirm" role="dialog" aria-modal="true" aria-labelledby="clearConfirmTitle"><div class="clear-confirm-card"><div id="clearConfirmTitle" class="clear-confirm-head">Clear All Permit Information?</div><div class="clear-confirm-body">This will permanently clear every entered field and signature from the current form. This action cannot be undone.</div><div class="clear-confirm-actions"><button type="button" class="btn-secondary" onclick="closeClearConfirmation()">Cancel</button><button type="button" class="btn-clear-confirm" onclick="confirmClearForm()">Clear All</button></div></div></div>
+<div id="progressOverlay" class="progress-overlay" role="dialog" aria-modal="true" aria-labelledby="progressTitle"><div class="progress-card"><div id="progressTitle" class="progress-head">Generating Permit</div><div class="progress-body"><div id="progressMessage" class="progress-message">Preparing the controlled permit HTML…</div><div class="progress-track"><div id="progressBar" class="progress-bar"></div></div><div id="progressPercent" class="progress-percent">0%</div></div></div></div>
+<div id="toast" class="toast"></div>
+<script>
+const $=id=>document.getElementById(id);
+const signatureState={contractorSig:false,conradSig:false,completionSig:false};
+const embeddedSignatureData={contractorSig:'',conradSig:'',completionSig:''};
+let reviewMode=false;
+const monthNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function formatDate(value){if(!value)return '';const v=String(value).trim();let d,m,y;let x=v.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);if(x){y=+x[1];m=+x[2];d=+x[3]}else{x=v.match(/^(\d{1,2})[\/-]([A-Za-z]{3}|\d{1,2})[\/-](\d{4})$/);if(!x)return v;d=+x[1];y=+x[3];m=/^\d+$/.test(x[2])?+x[2]:monthNames.findIndex(n=>n.toLowerCase()===x[2].toLowerCase())+1}if(!d||m<1||m>12||y<1900)return v;return `${String(d).padStart(2,'0')}/${monthNames[m-1]}/${y}`}
+function today(){const d=new Date();return `${String(d.getDate()).padStart(2,'0')}/${monthNames[d.getMonth()]}/${d.getFullYear()}`}
+function displayDateToISO(value){if(!value)return '';const v=String(value).trim();let x=v.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);if(x)return `${x[1]}-${String(x[2]).padStart(2,'0')}-${String(x[3]).padStart(2,'0')}`;x=v.match(/^(\d{1,2})[\/-]([A-Za-z]{3}|\d{1,2})[\/-](\d{4})$/);if(!x)return '';const m=/^\d+$/.test(x[2])?+x[2]:monthNames.findIndex(n=>n.toLowerCase()===x[2].toLowerCase())+1;if(m<1||m>12)return '';return `${x[3]}-${String(m).padStart(2,'0')}-${String(x[1]).padStart(2,'0')}`}
+function normalizeDateFields(){['validDate','expireDate','issueDate','completionDate'].forEach(id=>{const el=$(id);if(el&&el.value)el.value=formatDate(el.value)})}
+function initDates(){['validDate','expireDate','issueDate'].forEach(id=>{if($(id)&&!$(id).value)$(id).value=today()})}
+let activeTimeField=null;
+function positionTimePicker(){const pop=$('timePickerPopup');if(!pop?.classList.contains('show')||!activeTimeField)return;const r=activeTimeField.getBoundingClientRect(),gap=7,w=pop.offsetWidth,h=pop.offsetHeight;let left=Math.min(Math.max(8,r.left),window.innerWidth-w-8),top=r.bottom+gap;if(top+h>window.innerHeight-8)top=Math.max(8,r.top-h-gap);pop.style.left=left+'px';pop.style.top=top+'px'}
+function openTimePicker(visible){if(!visible||visible.disabled)return;closeDateCalendar();activeTimeField=visible;let h=12,m='00',period='AM',match=String(visible.value||'').match(/^(\d{1,2}):(\d{2})(?:\s*(AM|PM))?$/i);if(match){h=+match[1];m=match[2];if(match[3])period=match[3].toUpperCase();else{period=h>=12?'PM':'AM';h=h%12||12}}$('timePickerHour').value=String(h);$('timePickerMinute').value=m;$('timePickerPeriod').value=period;$('timePickerPopup').classList.add('show');requestAnimationFrame(positionTimePicker)}
+function closeTimePicker(){activeTimeField=null;$('timePickerPopup')?.classList.remove('show')}
+function setSelectedTime(){if(!activeTimeField)return;activeTimeField.value=`${String($('timePickerHour').value).padStart(2,'0')}:${$('timePickerMinute').value} ${$('timePickerPeriod').value}`;activeTimeField.classList.remove('field-missing');activeTimeField.dispatchEvent(new Event('change',{bubbles:true}));closeTimePicker()}
+let activeDateField=null,calendarView=new Date();
+function calendarISO(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+function positionDateCalendar(){const pop=$('dateCalendar');if(!pop?.classList.contains('show')||!activeDateField)return;const r=activeDateField.getBoundingClientRect(),gap=7,w=pop.offsetWidth,h=pop.offsetHeight;let left=Math.min(Math.max(8,r.left),window.innerWidth-w-8),top=r.bottom+gap;if(top+h>window.innerHeight-8)top=Math.max(8,r.top-h-gap);pop.style.left=left+'px';pop.style.top=top+'px'}
+function renderDateCalendar(){const selected=displayDateToISO(activeDateField?.value||''),y=calendarView.getFullYear(),m=calendarView.getMonth(),first=new Date(y,m,1),start=new Date(y,m,1-first.getDay()),now=new Date(),days=$('calendarDays');$('calendarTitle').textContent=`${monthNames[m]} ${y}`;days.style.cssText='display:grid;grid-template-columns:repeat(7,minmax(0,1fr));width:100%;max-width:100%;overflow:hidden;box-sizing:border-box';days.innerHTML=Array.from({length:42},(_,i)=>{const d=new Date(start);d.setDate(start.getDate()+i);const iso=calendarISO(d),classes=['date-day'];if(d.getMonth()!==m)classes.push('outside');if(iso===calendarISO(now))classes.push('today');if(iso===selected)classes.push('selected');return `<button type="button" class="${classes.join(' ')}" data-date="${iso}" style="width:100%;min-width:0;max-width:100%;padding:0;margin:0;box-sizing:border-box;overflow:hidden">${d.getDate()}</button>`}).join('');requestAnimationFrame(positionDateCalendar)}
+function openDateCalendar(field){if(!field||field.disabled)return;closeTimePicker();activeDateField?.classList.remove('date-picker-open');activeDateField=field;field.classList.add('date-picker-open');const iso=displayDateToISO(field.value),parts=iso.split('-').map(Number);calendarView=parts.length===3&&parts.every(Boolean)?new Date(parts[0],parts[1]-1,1):new Date(new Date().getFullYear(),new Date().getMonth(),1);$('dateCalendar').classList.add('show');renderDateCalendar()}
+function closeDateCalendar(){activeDateField?.classList.remove('date-picker-open');activeDateField=null;$('dateCalendar')?.classList.remove('show')}
+function chooseCalendarDate(iso){if(!activeDateField)return;activeDateField.value=formatDate(iso);activeDateField.classList.remove('field-missing');activeDateField.dispatchEvent(new Event('change',{bubbles:true}));closeDateCalendar()}
+function setupDateTimePickers(){document.querySelectorAll('.picker-trigger').forEach(button=>button.addEventListener('click',e=>e.stopPropagation()));['validTime','expireTime'].forEach(id=>{const input=$(id);if(!input||input.dataset.pickerReady)return;input.dataset.pickerReady='true';input.classList.add('picker-enabled');input.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();openTimePicker(input)});input.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openTimePicker(input)}})});['validDate','expireDate','issueDate','completionDate'].forEach(id=>{const input=$(id);if(!input||input.dataset.pickerReady)return;input.dataset.pickerReady='true';input.classList.add('picker-enabled');input.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();openDateCalendar(input)});input.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openDateCalendar(input)}if(e.key==='Escape')closeDateCalendar()})});if(!document.body.dataset.customCalendarReady){document.body.dataset.customCalendarReady='true';$('calendarPrev').addEventListener('click',e=>{e.stopPropagation();calendarView.setMonth(calendarView.getMonth()-1);renderDateCalendar()});$('calendarNext').addEventListener('click',e=>{e.stopPropagation();calendarView.setMonth(calendarView.getMonth()+1);renderDateCalendar()});$('calendarDays').addEventListener('click',e=>{e.stopPropagation();const day=e.target.closest('[data-date]');if(day)chooseCalendarDate(day.dataset.date)});$('calendarToday').addEventListener('click',e=>{e.stopPropagation();chooseCalendarDate(calendarISO(new Date()))});$('calendarClose').addEventListener('click',e=>{e.stopPropagation();closeDateCalendar()});$('dateCalendar').addEventListener('click',e=>e.stopPropagation());document.addEventListener('click',closeDateCalendar);window.addEventListener('resize',positionDateCalendar);document.addEventListener('scroll',positionDateCalendar,true)}}
+function setupCustomTimePicker(){if(document.body.dataset.customTimeReady)return;document.body.dataset.customTimeReady='true';$('timePickerHour').innerHTML=Array.from({length:12},(_,i)=>`<option value="${i+1}">${String(i+1).padStart(2,'0')}</option>`).join('');$('timePickerMinute').innerHTML=Array.from({length:60},(_,i)=>`<option value="${String(i).padStart(2,'0')}">${String(i).padStart(2,'0')}</option>`).join('');$('timePickerPopup').addEventListener('click',e=>e.stopPropagation());$('timePickerClose').addEventListener('click',e=>{e.stopPropagation();closeTimePicker()});$('timePickerSet').addEventListener('click',e=>{e.stopPropagation();setSelectedTime()});document.addEventListener('click',closeTimePicker);window.addEventListener('resize',positionTimePicker);document.addEventListener('scroll',positionTimePicker,true)}
+function setCanvasSize(canvas){if(!canvas)return;const ratio=Math.max(window.devicePixelRatio||1,1),rect=canvas.getBoundingClientRect();if(rect.width<10||rect.height<10)return;const preserved=signatureState[canvas.id]?canvas.toDataURL('image/png'):embeddedSignatureData[canvas.id]||'';canvas.width=rect.width*ratio;canvas.height=rect.height*ratio;const ctx=canvas.getContext('2d');ctx.scale(ratio,ratio);ctx.lineWidth=2;ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle='#0057b8';if(preserved)restoreSignature(canvas.id,preserved)}
+function initSignatures(){document.querySelectorAll('.sign-pad').forEach(canvas=>{setCanvasSize(canvas);let drawing=false,last=null,changed=false;const pos=e=>{const r=canvas.getBoundingClientRect();const t=e.touches?e.touches[0]:e;return{x:t.clientX-r.left,y:t.clientY-r.top}};const start=e=>{e.preventDefault();drawing=true;changed=false;last=pos(e)};const move=e=>{if(!drawing)return;e.preventDefault();const p=pos(e);const ctx=canvas.getContext('2d');ctx.beginPath();ctx.moveTo(last.x,last.y);ctx.lineTo(p.x,p.y);ctx.stroke();last=p;changed=true;signatureState[canvas.id]=true;canvas.classList.remove('field-missing')};const end=()=>{if(drawing&&changed)scheduleAutoSave();drawing=false};canvas.addEventListener('mousedown',start);canvas.addEventListener('mousemove',move);window.addEventListener('mouseup',end);canvas.addEventListener('touchstart',start,{passive:false});canvas.addEventListener('touchmove',move,{passive:false});canvas.addEventListener('touchend',end);});}
+function clearSignature(id){const c=$(id);if(!c)return;const ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);signatureState[id]=false;embeddedSignatureData[id]='';scheduleAutoSave()}
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1800)}
+let modalReturnFocus=null;
+function showModal(title,html,returnFocus=null){modalReturnFocus=returnFocus;$('modalTitle').textContent=title;$('modalBody').innerHTML=html;$('modal').classList.add('show')}
+function closeModal(){$('modal').classList.remove('show');const target=modalReturnFocus;modalReturnFocus=null;if(target)setTimeout(()=>{target.scrollIntoView({behavior:'smooth',block:'center'});try{target.focus({preventScroll:true})}catch(e){target.focus?.()}},120)}
+function showEntryWarning(title,message,target){if($('modal').classList.contains('show'))return;showModal(title,`<p>${esc(message)}</p>`,target)}
+function showGenerationProgress(){$('progressOverlay').classList.add('show');updateGenerationProgress(12,'Validating permit information…')}
+function updateGenerationProgress(value,message){$('progressBar').style.width=value+'%';$('progressPercent').textContent=value+'%';if(message)$('progressMessage').textContent=currentInterfaceLanguage==='en'?message:(interfaceTranslations[currentInterfaceLanguage]?.[message]||message)}
+function finishGenerationProgress(){updateGenerationProgress(100,'Permit HTML generated successfully');setTimeout(()=>$('progressOverlay').classList.remove('show'),650)}
+function closeClearConfirmation(){$('clearConfirm').classList.remove('show')}
+function confirmClearForm(){$('clearConfirm').classList.remove('show');$('permitForm').reset();Object.keys(signatureState).forEach(clearSignature);clearMissingHighlights();$('propertyBuilding').value='Conrad Abu Dhabi Etihad Towers';toggleOtherPermitType();initDates();resizeLongTextFields();setupDateTimePickers();scheduleAutoSave()}
+function toggleMobileActions(){const actions=document.querySelector('.actions'),button=$('mobileActionsToggle');actions.classList.toggle('mobile-collapsed');const key=actions.classList.contains('mobile-collapsed')?'Show Actions':'Hide Actions';button.textContent=currentInterfaceLanguage==='en'?key:(interfaceTranslations[currentInterfaceLanguage]?.[key]||key)}
+let currentInterfaceLanguage='en';
+const interfaceTranslations={
+ar:{
+'Interface':'الواجهة','Entries remain English':'تظل جميع البيانات المدخلة باللغة الإنجليزية','Load Draft':'تحميل المسودة','Generate Permit':'إنشاء التصريح','Clear All':'مسح الكل','Show Actions':'إظهار الإجراءات','Hide Actions':'إخفاء الإجراءات',
+'Section must be completed and signed prior to commencement of work':'يجب إكمال هذا القسم وتوقيعه قبل بدء العمل','Work Permit Type *':'نوع تصريح العمل *','General Work Permit':'تصريح عمل عام','Electrical Work Permit':'تصريح أعمال كهربائية','Hot Work':'أعمال ساخنة','Working at Heights':'العمل على ارتفاعات','Other / Supplementary Permit':'تصريح آخر / تكميلي',
+'Routine maintenance, installation, repair or other general work not covered by a specialist permit.':'صيانة أو تركيب أو إصلاح روتيني أو أعمال عامة .','Work on electrical systems, distribution boards, circuits, isolation points or energized equipment.':'العمل على الأنظمة الكهربائية ولوحات التوزيع والدوائر ونقاط العزل أو المعدات الكهربائية.','Welding, cutting, brazing, soldering, grinding or any activity producing heat, sparks or flame.':'اللحام والقطع والجلخ أو أي نشاط ينتج حرارة أو شرار أو لهيب نار.','Work at 2 metres or above, including ladders, scaffolds, elevated platforms or exposed edges.':'العمل على ارتفاع مترين أو أكثر، بما يشمل السلالم والسقالات والمنصات والحواف المكشوفة.','Select when another controlled activity or supplementary authorization is required and describe it below.':'اختر هذا الخيار عند الحاجة إلى نشاط خاضع للرقابة أو تصريح تكميلي، ثم صفه أدناه.',
+'Company Name *':'اسم الشركة *','Property Name *':'اسم المنشأة *','Name of Senior Company Person | Emirates ID# *':'اسم مسؤول الشركة الأول | رقم الهوية الإماراتية *','Place of Work *':'مكان العمل *','Number of Persons on this Permit *':'عدد الأشخاص المشمولين بالتصريح *','Person On Site & Phone Number *':'الشخص الموجود في الموقع ورقم الهاتف *','Asset Code if Applicable':'رمز الأصل إن وجد','LPO Number':'رقم أمر الشراء المحلي','VALID FROM (Time/Date) *':'صالح من (الوقت/التاريخ) *','PERMIT EXPIRES (Time/Date) *':'انتهاء التصريح (الوقت/التاريخ) *',
+'Description of Work to Be Carried Out *':'وصف العمل المطلوب تنفيذه *','Personal Protective Equipment (PPE) Used *':'معدات الوقاية الشخصية المستخدمة *','Briefing / Requirement':'الإحاطة / المتطلبات','Engineering':'الهندسة','Work Activity':'نشاط العمل','Contractor':'المقاول',
+'The contractor has been briefed on ACTION IN EVEN OF FIRE!':'تم إطلاع المقاول على الإجراءات الواجب اتباعها في حالة الحريق!','The contractor has been briefed on PPE, Dress & Behavior Codes.':'تم إطلاع المقاول على معدات الوقاية وقواعد اللباس والسلوك.','The contractor has been briefed on Ablution, Eating and Hours of Work.':'تم إطلاع المقاول على مرافق الوضوء وتناول الطعام وساعات العمل.','The contractor has been briefed on Security Regulations whilst on site.':'تم إطلاع المقاول على لوائح الأمن أثناء وجوده في الموقع.','The contractor has been briefed on access to site and storage of materials.':'تم إطلاع المقاول على دخول الموقع وتخزين المواد.','The contractor has been briefed on Safety Regulations on reverse of this form.':'تم إطلاع المقاول على لوائح السلامة الواردة في هذا النموذج.',
+'The Contractor will be welding, brazing, soldering or other Hot Works':'سيقوم المقاول باللحام أو القطع أو غيرها من الأعمال الساخنة.','The Contractor will be working on the Power & Distribution System':'سيعمل المقاول على نظام الطاقة والتوزيع.','The Contractor will be working on the Domestic Water System':'سيعمل المقاول على نظام المياه المنزلية.','The Contractor will be working on the Fire Detection/Fire Protection Systems':'سيعمل المقاول على أنظمة كشف أو مكافحة الحريق.','The Contractor will be Working At Heights (2m or More)':'سيعمل المقاول على ارتفاع مترين أو أكثر.','The Contractor will be working in Confined Spaces':'سيعمل المقاول في الأماكن المحصورة.',
+'Contractors Safety Regulations':'لوائح سلامة المقاولين','The contractor and all contractor personnel must comply with the following safety regulations throughout the work.':'يجب على المقاول وجميع العاملين لديه الالتزام بلوائح السلامة التالية طوال فترة العمل.','I confirm that the contractor has read, understood, and agreed to comply with all Contractor Safety Regulations listed above.':'أؤكد أن المقاول قرأ وفهم ووافق على الالتزام بجميع لوائح سلامة المقاولين المذكورة أعلاه.',
+'Senior Contractor Representative':'ممثل المقاول الأول','Responsible Conrad Team Member':'عضو فريق كونراد المسؤول','Issue Date':'تاريخ الإصدار','Name *':'الاسم *','Employee ID *':'الرقم الوظيفي *','Designation *':'المسمى الوظيفي *','Signature *':'التوقيع *','Clear Signature':'مسح التوقيع',
+'Section must be completed and signed after completion of work':'يجب إكمال هذا القسم وتوقيعه بعد انتهاء العمل','The issued permit above is locked and read-only. Complete every item below after the work has finished.':'التصريح الصادر أعلاه مقفل للقراءة فقط. أكمل جميع البنود أدناه بعد انتهاء العمل.','Work completed satisfactorily *':'تم إنجاز العمل بشكل مرضٍ *','Drawings, O&M Manuals and Guarantees received *':'تم استلام الرسومات وأدلة التشغيل والضمانات *','All supplementary permits closed *':'تم إغلاق جميع التصاريح التكميلية *','All work debris cleared from site *':'تمت إزالة جميع مخلفات العمل من الموقع *','Name of Responsible Conrad Team Member *':'اسم عضو فريق كونراد المسؤول *','Completion Date *':'تاريخ الإنجاز *','Signature of Responsible Conrad Team Member *':'توقيع عضو فريق كونراد المسؤول *','Select':'اختر','Yes':'نعم','No':'لا','Save HTML':'حفظ HTML','Generate Final PDF':'إنشاء ملف PDF النهائي'
+},
+ur:{
+'Interface':'زبان','Entries remain English':'تمام اندراج انگریزی میں رہیں گے','Load Draft':'مسودہ لوڈ کریں','Generate Permit':'پرمٹ بنائیں','Clear All':'سب صاف کریں','Show Actions':'اختیارات دکھائیں','Hide Actions':'اختیارات چھپائیں',
+'Section must be completed and signed prior to commencement of work':'کام شروع کرنے سے پہلے یہ حصہ مکمل اور دستخط ہونا ضروری ہے','Work Permit Type *':'ورک پرمٹ کی قسم *','General Work Permit':'عام ورک پرمٹ','Electrical Work Permit':'برقی کام کا پرمٹ','Hot Work':'ہاٹ ورک','Working at Heights':'بلندی پر کام','Other / Supplementary Permit':'دیگر / اضافی پرمٹ',
+'Routine maintenance, installation, repair or other general work not covered by a specialist permit.':'معمول کی دیکھ بھال، تنصیب، مرمت یا ایسا عمومی کام جو خصوصی پرمٹ میں شامل نہ ہو۔','Work on electrical systems, distribution boards, circuits, isolation points or energized equipment.':'برقی نظام، ڈسٹری بیوشن بورڈ، سرکٹ، آئسولیشن پوائنٹ یا برقی آلات پر کام۔','Welding, cutting, brazing, soldering, grinding or any activity producing heat, sparks or flame.':'ویلڈنگ، کٹنگ، گرائنڈنگ یا کوئی بھی کام جس سے حرارت، چنگاری یا شعلہ پیدا ہو۔','Work at 2 metres or above, including ladders, scaffolds, elevated platforms or exposed edges.':'دو میٹر یا اس سے زیادہ بلندی پر سیڑھی، اسکیفولڈ، پلیٹ فارم یا کھلے کنارے پر کام۔','Select when another controlled activity or supplementary authorization is required and describe it below.':'جب کسی دوسرے کنٹرول شدہ کام یا اضافی اجازت کی ضرورت ہو تو منتخب کریں اور نیچے وضاحت کریں۔',
+'Company Name *':'کمپنی کا نام *','Property Name *':'پراپرٹی کا نام *','Name of Senior Company Person | Emirates ID# *':'سینئر کمپنی نمائندے کا نام | امارات آئی ڈی نمبر *','Place of Work *':'کام کی جگہ *','Number of Persons on this Permit *':'اس پرمٹ میں افراد کی تعداد *','Person On Site & Phone Number *':'سائٹ پر موجود شخص اور فون نمبر *','Asset Code if Applicable':'اثاثہ کوڈ، اگر قابل اطلاق ہو','LPO Number':'ایل پی او نمبر','VALID FROM (Time/Date) *':'درست از (وقت/تاریخ) *','PERMIT EXPIRES (Time/Date) *':'پرمٹ کی میعاد (وقت/تاریخ) *',
+'Description of Work to Be Carried Out *':'کئے جانے والے کام کی تفصیل *','Personal Protective Equipment (PPE) Used *':'استعمال ہونے والا ذاتی حفاظتی سامان *','Briefing / Requirement':'بریفنگ / ضرورت','Engineering':'انجینئرنگ','Work Activity':'کام کی سرگرمی','Contractor':'ٹھیکیدار',
+'The contractor has been briefed on ACTION IN EVEN OF FIRE!':'ٹھیکیدار کو آگ لگنے کی صورت میں کارروائی سے آگاہ کیا گیا ہے!','The contractor has been briefed on PPE, Dress & Behavior Codes.':'ٹھیکیدار کو پی پی ای، لباس اور رویے کے اصول بتائے گئے ہیں۔','The contractor has been briefed on Ablution, Eating and Hours of Work.':'ٹھیکیدار کو وضو، کھانے اور کام کے اوقات سے آگاہ کیا گیا ہے۔','The contractor has been briefed on Security Regulations whilst on site.':'ٹھیکیدار کو سائٹ کے حفاظتی ضوابط بتائے گئے ہیں۔','The contractor has been briefed on access to site and storage of materials.':'ٹھیکیدار کو سائٹ تک رسائی اور سامان کے ذخیرے سے آگاہ کیا گیا ہے۔','The contractor has been briefed on Safety Regulations on reverse of this form.':'ٹھیکیدار کو اس فارم کے حفاظتی ضوابط بتائے گئے ہیں۔',
+'The Contractor will be welding, brazing, soldering or other Hot Works':'ٹھیکیدار ویلڈنگ، کٹنگ یا دیگر ہاٹ ورک کرے گا۔','The Contractor will be working on the Power & Distribution System':'ٹھیکیدار بجلی اور تقسیم کے نظام پر کام کرے گا۔','The Contractor will be working on the Domestic Water System':'ٹھیکیدار گھریلو پانی کے نظام پر کام کرے گا۔','The Contractor will be working on the Fire Detection/Fire Protection Systems':'ٹھیکیدار آگ کی شناخت یا حفاظت کے نظام پر کام کرے گا۔','The Contractor will be Working At Heights (2m or More)':'ٹھیکیدار دو میٹر یا اس سے زیادہ بلندی پر کام کرے گا۔','The Contractor will be working in Confined Spaces':'ٹھیکیدار محدود جگہوں میں کام کرے گا۔',
+'Contractors Safety Regulations':'ٹھیکیدار کے حفاظتی ضوابط','The contractor and all contractor personnel must comply with the following safety regulations throughout the work.':'ٹھیکیدار اور اس کے تمام کارکنوں کو کام کے دوران درج ذیل حفاظتی ضوابط کی پابندی کرنا ہوگی۔','I confirm that the contractor has read, understood, and agreed to comply with all Contractor Safety Regulations listed above.':'میں تصدیق کرتا ہوں کہ ٹھیکیدار نے اوپر دیے گئے تمام حفاظتی ضوابط پڑھ، سمجھ اور قبول کیے ہیں۔',
+'Senior Contractor Representative':'سینئر ٹھیکیدار نمائندہ','Responsible Conrad Team Member':'ذمہ دار کونراڈ ٹیم ممبر','Issue Date':'اجراء کی تاریخ','Name *':'نام *','Employee ID *':'ملازم آئی ڈی *','Designation *':'عہدہ *','Signature *':'دستخط *','Clear Signature':'دستخط صاف کریں',
+'Section must be completed and signed after completion of work':'کام مکمل ہونے کے بعد یہ حصہ مکمل اور دستخط ہونا ضروری ہے','The issued permit above is locked and read-only. Complete every item below after the work has finished.':'اوپر جاری شدہ پرمٹ مقفل اور صرف پڑھنے کے لیے ہے۔ کام مکمل ہونے کے بعد نیچے تمام خانے پُر کریں۔','Work completed satisfactorily *':'کام اطمینان بخش طور پر مکمل ہوا *','Drawings, O&M Manuals and Guarantees received *':'ڈرائنگ، آپریشن مینوئل اور ضمانتیں موصول ہوئیں *','All supplementary permits closed *':'تمام اضافی پرمٹ بند کر دیے گئے *','All work debris cleared from site *':'کام کا تمام ملبہ سائٹ سے صاف کر دیا گیا *','Name of Responsible Conrad Team Member *':'ذمہ دار کونراڈ ٹیم ممبر کا نام *','Completion Date *':'تکمیل کی تاریخ *','Signature of Responsible Conrad Team Member *':'ذمہ دار کونراڈ ٹیم ممبر کے دستخط *','Select':'منتخب کریں','Yes':'ہاں','No':'نہیں','Save HTML':'HTML محفوظ کریں','Generate Final PDF':'حتمی PDF بنائیں'
+}};
+Object.assign(interfaceTranslations.ar,{
+'PERMIT TO WORK':'تصريح العمل','Complete the permit, then generate the controlled completion HTML':'أكمل التصريح ثم أنشئ ملف HTML الخاضع للرقابة.','Complete and sign the permit before work starts. Generate the Completion HTML and keep that file with the permit; after the work is finished, open it, complete the final section, and generate the final PDF.':'أكمل التصريح ووقّعه قبل بدء العمل. أنشئ ملف التصريح واحتفظ به، ثم افتحه بعد انتهاء العمل لإكمال القسم النهائي وإنشاء ملف PDF.',
+'Contractors will ensure that their personnel are provided with appropriate safety equipment for the work being carried out.':'يضمن المقاول تزويد العاملين بمعدات السلامة المناسبة للعمل.','Work areas will be cordoned off with suitable barriers where necessary. Barriers must prevent unauthorised access to the work area. Danger tape is not permitted for cordoning off work areas.':'يجب عزل مناطق العمل بحواجز مناسبة تمنع الدخول غير المصرح به، ولا يُسمح باستخدام شريط التحذير كحاجز.','Appropriate warning signs will be displayed next to the cordoned-off work area.':'يجب وضع علامات تحذير مناسبة بجوار منطقة العمل المعزولة.','Contractors will ensure that their personnel are briefed on the safe use of all tools and equipment required to carry out the work.':'يضمن المقاول إطلاع العاملين على الاستخدام الآمن لجميع الأدوات والمعدات.','Contractors will ensure that all tools and equipment in use are safe and fit for purpose.':'يضمن المقاول أن جميع الأدوات والمعدات آمنة وصالحة للاستخدام.','Any equipment requiring certification, including lifting equipment and air-compressor vessels, must have current valid certification.':'يجب أن تكون شهادات المعدات، بما فيها معدات الرفع وضواغط الهواء، سارية المفعول.','All electric power tools must be fitted with appropriate guards and electrical plugs.':'يجب تزويد الأدوات الكهربائية بالحواجز والمقابس المناسبة.','Electrical extension leads must be fitted with appropriate plugs and be free from cuts and kinks.':'يجب أن تكون وصلات الكهرباء بمقابس مناسبة وخالية من القطوع والتلف.','Before work begins, contractors must provide a list and all required Safety Data Sheets (SDS/MSDS) for hazardous or toxic substances brought onto the site. Such substances must be stored in accordance with good practice.':'قبل العمل يجب تقديم قائمة ونشرات بيانات السلامة للمواد الخطرة أو السامة وتخزينها بشكل آمن.','Smoking and eating on site are permitted only in the designated areas.':'يسمح بالتدخين وتناول الطعام فقط في الأماكن المخصصة.','The work area must be kept clean and tidy at all times. Fire and safety hazards, including oily rags and flammable materials, must be removed promptly. The contractor is responsible for removing all waste materials from the site.':'يجب إبقاء منطقة العمل نظيفة وإزالة مخاطر الحريق والمواد القابلة للاشتعال وجميع النفايات فوراً.','When working in or around swimming pools, Conrad will provide lifeguard cover. No work may be carried out without a lifeguard present.':'عند العمل داخل أو حول المسابح، لا يجوز العمل دون وجود منقذ يوفره كونراد.','When using a ladder, the contractor must ensure that it is in good condition and that a second person secures the bottom of the ladder at all times while it is in use.':'عند استخدام السلم يجب التأكد من سلامته وأن يقوم شخص ثانٍ بتثبيته طوال فترة الاستخدام.','IMPORTANT! The team member signing below must ensure that all relevant systems & equipment are locked out in accordance with policy & guidelines, and that all supplementary permits have been issued.':'مهم! يجب على عضو الفريق الموقّع التأكد من عزل جميع الأنظمة والمعدات وإصدار جميع التصاريح التكميلية.'
+});
+Object.assign(interfaceTranslations.ur,{
+'PERMIT TO WORK':'کام کا اجازت نامہ','Complete the permit, then generate the controlled completion HTML':'پرمٹ مکمل کریں، پھر کنٹرول شدہ HTML فائل بنائیں۔','Complete and sign the permit before work starts. Generate the Completion HTML and keep that file with the permit; after the work is finished, open it, complete the final section, and generate the final PDF.':'کام شروع ہونے سے پہلے پرمٹ مکمل اور دستخط کریں۔ پرمٹ فائل محفوظ رکھیں، کام مکمل ہونے کے بعد آخری حصہ پُر کرکے حتمی PDF بنائیں۔',
+'Contractors will ensure that their personnel are provided with appropriate safety equipment for the work being carried out.':'ٹھیکیدار یقینی بنائے گا کہ کارکنوں کو مناسب حفاظتی سامان دیا گیا ہے۔','Work areas will be cordoned off with suitable barriers where necessary. Barriers must prevent unauthorised access to the work area. Danger tape is not permitted for cordoning off work areas.':'کام کی جگہ کو مناسب رکاوٹوں سے بند کیا جائے جو غیر مجاز داخلہ روکیں؛ صرف خطرے کی ٹیپ قابل قبول نہیں۔','Appropriate warning signs will be displayed next to the cordoned-off work area.':'بند کام کی جگہ کے پاس مناسب انتباہی نشان لگائے جائیں۔','Contractors will ensure that their personnel are briefed on the safe use of all tools and equipment required to carry out the work.':'ٹھیکیدار کارکنوں کو تمام اوزار اور آلات کے محفوظ استعمال سے آگاہ کرے گا۔','Contractors will ensure that all tools and equipment in use are safe and fit for purpose.':'تمام استعمال شدہ اوزار اور آلات محفوظ اور کام کے لیے موزوں ہوں۔','Any equipment requiring certification, including lifting equipment and air-compressor vessels, must have current valid certification.':'لفٹنگ اور ایئر کمپریسر سمیت تمام متعلقہ آلات کے درست سرٹیفکیٹ موجود ہوں۔','All electric power tools must be fitted with appropriate guards and electrical plugs.':'تمام برقی اوزار پر مناسب گارڈ اور پلگ لگے ہوں۔','Electrical extension leads must be fitted with appropriate plugs and be free from cuts and kinks.':'برقی ایکسٹینشن مناسب پلگ کے ساتھ اور کٹ یا نقصان سے پاک ہوں۔','Before work begins, contractors must provide a list and all required Safety Data Sheets (SDS/MSDS) for hazardous or toxic substances brought onto the site. Such substances must be stored in accordance with good practice.':'کام سے پہلے خطرناک مواد کی فہرست اور حفاظتی ڈیٹا شیٹ فراہم کرکے مواد کو محفوظ طریقے سے ذخیرہ کیا جائے۔','Smoking and eating on site are permitted only in the designated areas.':'سگریٹ نوشی اور کھانا صرف مقررہ جگہوں پر جائز ہے۔','The work area must be kept clean and tidy at all times. Fire and safety hazards, including oily rags and flammable materials, must be removed promptly. The contractor is responsible for removing all waste materials from the site.':'کام کی جگہ صاف رکھی جائے اور آگ کے خطرات، آتش گیر مواد اور تمام فضلہ فوراً ہٹایا جائے۔','When working in or around swimming pools, Conrad will provide lifeguard cover. No work may be carried out without a lifeguard present.':'سوئمنگ پول کے اندر یا آس پاس کام لائف گارڈ کی موجودگی کے بغیر نہیں ہوگا۔','When using a ladder, the contractor must ensure that it is in good condition and that a second person secures the bottom of the ladder at all times while it is in use.':'سیڑھی اچھی حالت میں ہو اور استعمال کے دوران دوسرا شخص اسے نیچے سے محفوظ رکھے۔','IMPORTANT! The team member signing below must ensure that all relevant systems & equipment are locked out in accordance with policy & guidelines, and that all supplementary permits have been issued.':'اہم! دستخط کرنے والا ٹیم ممبر یقینی بنائے کہ تمام نظام اور آلات لاک آؤٹ ہیں اور تمام اضافی پرمٹ جاری ہو چکے ہیں۔'
+});
+Object.assign(interfaceTranslations.ar,{'Clear All Permit Information?':'مسح جميع معلومات التصريح؟','This will permanently clear every entered field and signature from the current form. This action cannot be undone.':'سيؤدي ذلك إلى مسح جميع الحقول والتوقيعات من النموذج الحالي نهائياً. لا يمكن التراجع عن هذا الإجراء.','Cancel':'إلغاء','Generating Permit':'جارٍ إنشاء التصريح','Preparing the controlled permit HTML…':'جارٍ إعداد ملف التصريح…','Validating permit information…':'جارٍ التحقق من معلومات التصريح…','Embedding permit data and signatures…':'جارٍ تضمين بيانات التصريح والتوقيعات…','Saving the permit HTML…':'جارٍ حفظ ملف التصريح…','Permit HTML generated successfully':'تم إنشاء ملف التصريح بنجاح','0%':'٠٪'});
+Object.assign(interfaceTranslations.ur,{'Clear All Permit Information?':'پرمٹ کی تمام معلومات صاف کریں؟','This will permanently clear every entered field and signature from the current form. This action cannot be undone.':'اس سے موجودہ فارم کے تمام خانے اور دستخط مستقل طور پر صاف ہو جائیں گے۔ یہ عمل واپس نہیں ہو سکتا۔','Cancel':'منسوخ کریں','Generating Permit':'پرمٹ بنایا جا رہا ہے','Preparing the controlled permit HTML…':'پرمٹ HTML تیار کیا جا رہا ہے…','Validating permit information…':'پرمٹ کی معلومات کی جانچ ہو رہی ہے…','Embedding permit data and signatures…':'پرمٹ ڈیٹا اور دستخط شامل کیے جا رہے ہیں…','Saving the permit HTML…':'پرمٹ HTML محفوظ کیا جا رہا ہے…','Permit HTML generated successfully':'پرمٹ HTML کامیابی سے بن گیا','0%':'۰٪'});
+Object.assign(interfaceTranslations.ar,{'Auto Prediction':'التنبؤ التلقائي','Work + PPE only':'للعمل ومعدات الوقاية فقط','Suggested word':'الكلمة المقترحة','Tap word or press Tab':'اضغط الكلمة أو Tab'});
+Object.assign(interfaceTranslations.ur,{'Auto Prediction':'خودکار لفظ کی تجویز','Work + PPE only':'صرف کام اور PPE','Suggested word':'تجویز کردہ لفظ','Tap word or press Tab':'لفظ دبائیں یا Tab'});
+Object.assign(interfaceTranslations.ar,{'Online Prediction':'التنبؤ عبر الإنترنت'});
+Object.assign(interfaceTranslations.ur,{'Online Prediction':'آن لائن لفظ کی تجویز'});
+Object.assign(interfaceTranslations.ar,{'Suggested words':'الكلمات المقترحة','Tap a word or press Tab for the first':'اضغط كلمة أو اضغط Tab لاختيار الأولى'});
+Object.assign(interfaceTranslations.ur,{'Suggested words':'تجویز کردہ الفاظ','Tap a word or press Tab for the first':'لفظ دبائیں یا پہلے لفظ کے لیے Tab دبائیں'});
+const translatedPlaceholders={ar:{companyName:'اسم الشركة باللغة الإنجليزية',seniorName:'الاسم باللغة الإنجليزية',seniorId:'الهوية الإماراتية أو جواز السفر',roomCode:'مكان العمل باللغة الإنجليزية',personOnSite:'الاسم باللغة الإنجليزية',personOnSitePhone:'رقم الهاتف',workDescription:'اكتب وصف العمل باللغة الإنجليزية',ppeUsed:'اكتب معدات الوقاية باللغة الإنجليزية',responsibleName:'الاسم باللغة الإنجليزية',responsibleId:'الرقم الوظيفي',responsibleDesignation:'المسمى الوظيفي باللغة الإنجليزية',completionName:'الاسم باللغة الإنجليزية',completionId:'الرقم الوظيفي',completionDesignation:'المسمى الوظيفي باللغة الإنجليزية'},ur:{companyName:'کمپنی کا نام انگریزی میں',seniorName:'نام انگریزی میں',seniorId:'امارات آئی ڈی یا پاسپورٹ',roomCode:'کام کی جگہ انگریزی میں',personOnSite:'نام انگریزی میں',personOnSitePhone:'فون نمبر',workDescription:'کام کی تفصیل انگریزی میں لکھیں',ppeUsed:'حفاظتی سامان انگریزی میں لکھیں',responsibleName:'نام انگریزی میں',responsibleId:'ملازم آئی ڈی',responsibleDesignation:'عہدہ انگریزی میں',completionName:'نام انگریزی میں',completionId:'ملازم آئی ڈی',completionDesignation:'عہدہ انگریزی میں'}};
+function captureEnglishInterface(root=document){root.querySelectorAll('body *').forEach(el=>{if(['SCRIPT','STYLE','INPUT','TEXTAREA','CANVAS'].includes(el.tagName)||el.children.length)return;const text=el.textContent.trim();if(text&&!el.dataset.enText)el.dataset.enText=text;if(el.tagName==='OPTION'&&!el.hasAttribute('value'))el.setAttribute('value',text)});root.querySelectorAll('input[placeholder],textarea[placeholder]').forEach(el=>{if(!el.dataset.enPlaceholder)el.dataset.enPlaceholder=el.getAttribute('placeholder')||''})}
+function setInterfaceLanguage(lang){currentInterfaceLanguage=['ar','ur'].includes(lang)?lang:'en';captureEnglishInterface();const dict=interfaceTranslations[currentInterfaceLanguage]||{};document.querySelectorAll('[data-en-text]').forEach(el=>{const en=el.dataset.enText;el.textContent=currentInterfaceLanguage==='en'?en:(dict[en]||en);el.dir=currentInterfaceLanguage==='en'?'ltr':'rtl'});document.querySelectorAll('[data-en-placeholder]').forEach(el=>{const translated=translatedPlaceholders[currentInterfaceLanguage]?.[el.id];el.placeholder=currentInterfaceLanguage==='en'?el.dataset.enPlaceholder:(translated||el.dataset.enPlaceholder);el.lang='en';el.dir='ltr'});document.body.classList.toggle('rtl-interface',currentInterfaceLanguage!=='en');document.body.dataset.interfaceLanguage=currentInterfaceLanguage;if($('interfaceLanguage'))$('interfaceLanguage').value=currentInterfaceLanguage;localStorage.setItem('permitInterfaceLanguage',currentInterfaceLanguage)}
+function normalizeCloneToEnglish(clone){clone.querySelectorAll('[data-en-text]').forEach(el=>{el.textContent=el.dataset.enText;el.dir='ltr'});clone.querySelectorAll('[data-en-placeholder]').forEach(el=>{el.placeholder=el.dataset.enPlaceholder;el.lang='en';el.dir='ltr'});clone.querySelector('body').classList.remove('rtl-interface');clone.querySelector('body').dataset.interfaceLanguage='en';delete clone.querySelector('body').dataset.customCalendarReady;delete clone.querySelector('body').dataset.customTimeReady;delete clone.querySelector('body').dataset.autoSaveReady;clone.querySelectorAll('[data-picker-ready]').forEach(el=>delete el.dataset.pickerReady);clone.querySelector('#dateCalendar')?.classList.remove('show');clone.querySelector('#timePickerPopup')?.classList.remove('show');clone.querySelector('#languageControl')?.remove();clone.querySelector('#predictionControl')?.remove();clone.querySelectorAll('.prediction-strip').forEach(el=>el.remove());clone.querySelectorAll('.native-picker-proxy,.native-time-picker-source').forEach(el=>el.remove());clone.querySelector('#clearConfirm')?.remove();clone.querySelector('#progressOverlay')?.remove()}
+
+let activePredictionField=null;
+const predictionRequests={};
+function isMobilePredictionView(){return window.matchMedia('(max-width:600px)').matches}
+function predictionEnabled(){return document.body.dataset.generatedPermit!=='true'&&!isMobilePredictionView()&&$('autoPredictionToggle')?.checked===true}
+function getPredictionWordInfo(field){const caret=field.selectionStart??field.value.length,text=field.value;let start=caret,end=caret;while(start>0&&/[A-Za-z]/.test(text[start-1]))start--;while(end<text.length&&/[A-Za-z]/.test(text[end]))end++;return{start,end,prefix:text.slice(start,caret),word:text.slice(start,end)}}
+function hidePredictions(exceptId=''){document.querySelectorAll('.prediction-strip').forEach(el=>{if(el.id!==exceptId){el.classList.remove('active');el.querySelector('.prediction-words').replaceChildren()}})}
+async function updatePrediction(field){
+  if(!field||!['workDescription','ppeUsed'].includes(field.id)||!predictionEnabled()){hidePredictions();return}
+  activePredictionField=field;
+  const info=getPredictionWordInfo(field),prefix=info.prefix.toLowerCase();
+  const strip=$(field.id+'Prediction');hidePredictions(strip.id);
+  if(prefix.length<2){strip.classList.remove('active');strip.querySelector('.prediction-words').replaceChildren();return}
+  predictionRequests[field.id]?.abort();
+  const controller=new AbortController();predictionRequests[field.id]=controller;
+  let suggestions=[];
+  try{
+    const response=await fetch(`https://api.datamuse.com/sug?s=${encodeURIComponent(prefix)}&max=8`,{signal:controller.signal,cache:'no-store'});
+    if(!response.ok)throw new Error('Prediction service unavailable');
+    const results=await response.json();
+    suggestions=[...new Set(results.map(item=>String(item.word||'').trim()).filter(word=>/^[A-Za-z][A-Za-z'-]*$/.test(word)&&word.toLowerCase().startsWith(prefix)&&word.toLowerCase()!==info.word.toLowerCase()))].slice(0,7);
+  }catch(error){if(error.name!=='AbortError')console.warn('Online prediction unavailable:',error);return}
+  if(controller.signal.aborted||activePredictionField!==field||getPredictionWordInfo(field).prefix.toLowerCase()!==prefix)return;
+  const wordsBox=strip.querySelector('.prediction-words');wordsBox.replaceChildren();
+  if(!suggestions.length){strip.classList.remove('active');return}
+  suggestions.forEach(word=>{const button=document.createElement('button');button.type='button';button.className='prediction-word';button.textContent=word;button.addEventListener('pointerdown',e=>e.preventDefault());button.addEventListener('click',()=>acceptPrediction(field,word));wordsBox.appendChild(button)});
+  strip.classList.add('active');
+}
+function requestPredictionNow(field){if(field)updatePrediction(field)}
+function acceptPrediction(field=activePredictionField,selectedWord=''){
+  if(!field)return;const strip=$(field.id+'Prediction'),word=selectedWord||strip?.querySelector('.prediction-word')?.textContent;if(!word)return;
+  const info=getPredictionWordInfo(field),next=field.value.charAt(info.end),space=next&&/\s/.test(next)?'':' ';
+  field.value=field.value.slice(0,info.start)+word+space+field.value.slice(info.end);
+  const caret=info.start+word.length+space.length;field.focus();field.setSelectionRange(caret,caret);field.dispatchEvent(new Event('input',{bubbles:true}));hidePredictions();
+}
+function setupAutoPrediction(){
+  const toggle=$('autoPredictionToggle');if(!toggle)return;
+  toggle.checked=localStorage.getItem('permitAutoPrediction')!=='off';
+  toggle.addEventListener('change',()=>{localStorage.setItem('permitAutoPrediction',toggle.checked?'on':'off');if(!toggle.checked){Object.values(predictionRequests).forEach(request=>request.abort());hidePredictions()}else requestPredictionNow(activePredictionField)});
+  ['workDescription','ppeUsed'].forEach(id=>{const field=$(id),strip=$(id+'Prediction');if(!field||!strip)return;
+    ['input','click','focus','select'].forEach(type=>field.addEventListener(type,()=>requestPredictionNow(field)));
+    field.addEventListener('keydown',e=>{if(e.key==='Tab'&&strip.classList.contains('active')){e.preventDefault();acceptPrediction(field)}});
+  });
+  document.addEventListener('pointerdown',e=>{if(!e.target.closest('.prediction-strip')&&!['workDescription','ppeUsed'].includes(e.target.id)){activePredictionField=null;hidePredictions()}});
+  window.matchMedia('(max-width:600px)').addEventListener?.('change',()=>{if(isMobilePredictionView()||!toggle.checked)hidePredictions();else requestPredictionNow(activePredictionField)});
+}
+document.addEventListener('input',e=>{const target=e.target;if(target.id==='personOnSitePhone'){const clean=target.value.replace(/\D/g,'');if(clean!==target.value){target.value=clean;showEntryWarning('Digits Only','Phone Number accepts digits from 0 to 9 only.',target)}}else if(target.matches('input[type="text"],input:not([type]),textarea')){const clean=target.value.replace(/[^\x09\x0A\x0D\x20-\x7E]/g,'');if(clean!==target.value){target.value=clean;autoResizeTextarea(target);showEntryWarning('English Entry Required','Please type this information using English letters, numbers, and standard English punctuation only.',target)}}target.classList.remove('field-missing');if(target.matches('[id^="permitType"]')&&['permitTypeGeneral','permitTypeElectrical','permitTypeHotWork','permitTypeHeights','permitTypeOther'].some(id=>$(id)?.checked))document.querySelector('.permit-type-group')?.classList.remove('field-missing')});
+document.addEventListener('change',e=>{e.target.classList.remove('field-missing');if(e.target.id==='safetyRegulationsAck'&&e.target.checked)e.target.closest('.regulations-ack')?.classList.remove('field-missing')});
+function autoResizeTextarea(el){if(!el)return;el.style.height='auto';el.style.height=Math.max(112,el.scrollHeight+2)+'px'}
+function resizeLongTextFields(){['workDescription','ppeUsed'].forEach(id=>autoResizeTextarea($(id)))}
+function fieldValue(id){return ($(id)?.value||'').trim()}
+function yesNo(id){return fieldValue(id)||''}
+function toggleOtherPermitType(){
+  const other=$('permitTypeOther');
+  const text=$('permitTypeOtherText');
+  if(!other||!text)return;
+  text.style.display=other.checked?'block':'none';
+  if(!other.checked)text.value='';
+}
+function collectData(){
+  normalizeDateFields();
+  const ids=['companyName','propertyBuilding','seniorName','seniorId','roomCode','personsNo','personOnSite','personOnSitePhone','assetCode','lpoNo','validTime','validDate','expireTime','expireDate','workDescription','ppeUsed','briefFire','briefPpe','briefHours','briefSecurity','briefAccess','briefSafety','hotWorks','powerSystem','waterSystem','fireProtection','heights','confinedSpaces','responsibleName','responsibleId','responsibleDesignation','issueDate'];
+  const d={};
+  ids.forEach(id=>d[id]=fieldValue(id));
+  d.safetyRegulationsAck=!!$('safetyRegulationsAck')?.checked;
+  const permitTypeMap=[['permitTypeGeneral','General Work Permit'],['permitTypeElectrical','Electrical Work Permit'],['permitTypeHotWork','Hot Work'],['permitTypeHeights','Working at Heights']];
+  permitTypeMap.forEach(([id])=>{d[id]=!!$(id)?.checked});
+  d.permitTypeOther=!!$('permitTypeOther')?.checked;
+  d.permitTypeOtherText=fieldValue('permitTypeOtherText');
+  const selected=permitTypeMap.filter(([id])=>d[id]).map(([,label])=>label);
+  if(d.permitTypeOther)selected.push(d.permitTypeOtherText?`Other: ${d.permitTypeOtherText}`:'Other');
+  d.permitTypes=selected.join(', ');
+  d.contractorSig=signatureState.contractorSig?$('contractorSig').toDataURL('image/png'):embeddedSignatureData.contractorSig;
+  d.conradSig=signatureState.conradSig?$('conradSig').toDataURL('image/png'):embeddedSignatureData.conradSig;
+  d.completeSatisfactory=fieldValue('completeSatisfactory');d.completeDocuments=fieldValue('completeDocuments');
+  d.completePermits=fieldValue('completePermits');d.completeDebris=fieldValue('completeDebris');
+  d.completionName=fieldValue('completionName');d.completionId=fieldValue('completionId');d.completionDesignation=fieldValue('completionDesignation');d.completionDate=fieldValue('completionDate');
+  d.completionSig=signatureState.completionSig?$('completionSig').toDataURL('image/png'):embeddedSignatureData.completionSig;
+  return d;
+}
+let lastMissingTarget=null;
+function clearMissingHighlights(){document.querySelectorAll('.field-missing').forEach(el=>el.classList.remove('field-missing'));lastMissingTarget=null}
+function registerMissing(missing,label,focusTarget,highlightTarget=focusTarget){missing.push(label);highlightTarget?.classList.add('field-missing');if(!lastMissingTarget&&focusTarget){lastMissingTarget=focusTarget;if(focusTarget.tagName==='CANVAS')focusTarget.tabIndex=0}}
+function validateForm(){
+  clearMissingHighlights();const missing=[];
+  document.querySelectorAll('[required]').forEach(el=>{const empty=(el.type==='checkbox'||el.type==='radio')?!el.checked:!el.value.trim();if(empty)registerMissing(missing,el.dataset.label||el.id,el,el.type==='checkbox'?(el.closest('.regulations-ack')||el):el)});
+  ['briefFire','briefPpe','briefHours','briefSecurity','briefAccess','briefSafety','hotWorks','powerSystem','waterSystem','fireProtection','heights','confinedSpaces'].forEach(id=>{const el=$(id);if(!fieldValue(id))registerMissing(missing,el.dataset.label||id,el)});
+  const anyPermitType=['permitTypeGeneral','permitTypeElectrical','permitTypeHotWork','permitTypeHeights','permitTypeOther'].some(id=>$(id)?.checked);
+  if(!anyPermitType)registerMissing(missing,'Work Permit Type',$('permitTypeGeneral'),document.querySelector('.permit-type-group'));
+  if($('permitTypeOther')?.checked && !fieldValue('permitTypeOtherText'))registerMissing(missing,'Other Work Permit Type (please specify)',$('permitTypeOtherText'));
+  if(!signatureState.contractorSig)registerMissing(missing,'Signature of Senior Contractor Representative',$('contractorSig'));
+  if(!signatureState.conradSig)registerMissing(missing,'Signature of Responsible Conrad Team Member',$('conradSig'));
+  return missing;
+}
+function validateCompletion(){
+  clearMissingHighlights();const missing=[];
+  ['completeSatisfactory','completeDocuments','completePermits','completeDebris','completionName','completionId','completionDesignation','completionDate'].forEach(id=>{const el=$(id);if(!fieldValue(id))registerMissing(missing,el.dataset.label||id,el)});
+  if(!signatureState.completionSig)registerMissing(missing,'Signature of Responsible Conrad Team Member',$('completionSig'));
+  return missing;
+}
+function restoreSignature(id,src){if(!src||!$(id))return;embeddedSignatureData[id]=src;const img=new Image();img.onload=()=>{const c=$(id),r=c.getBoundingClientRect();if(r.width<10||r.height<10)return;const ctx=c.getContext('2d');ctx.clearRect(0,0,c.width,c.height);ctx.drawImage(img,0,0,r.width,r.height);signatureState[id]=true};img.src=src}
+function applyData(d){const dateIds=new Set(['validDate','expireDate','issueDate','completionDate']);Object.keys(d).forEach(id=>{const el=$(id);if(!el||id.includes('Sig'))return;if(el.type==='checkbox')el.checked=!!d[id];else if('value' in el)el.value=dateIds.has(id)?formatDate(d[id]||''):(d[id]||'')});['contractorSig','conradSig','completionSig'].forEach(id=>{embeddedSignatureData[id]=d[id]||'';restoreSignature(id,d[id])});toggleOtherPermitType();requestAnimationFrame(resizeLongTextFields)}
+function enterReviewMode(d){reviewMode=true;document.body.classList.add('review-mode');$('completionPanel').classList.add('active');setCanvasSize($('completionSig'));applyData(d);normalizeDateFields();$('primaryWorkflowButton').textContent='Generate Final PDF';const loadButton=$('loadDraftButton');if(loadButton){loadButton.style.setProperty('display','inline-flex','important');loadButton.style.setProperty('visibility','visible','important');loadButton.style.setProperty('opacity','1','important')}$('workflowSubtitle').textContent='Issued permit review and post-work completion';$('workflowNotice').innerHTML='<b>Controlled completion copy:</b> all issued permit fields are locked. Complete the post-work section below, then generate the final PDF.';document.querySelectorAll('#permitForm input,#permitForm textarea,#permitForm select').forEach(el=>el.disabled=true);if(!$('completionDate').value)$('completionDate').value=today()}
+function enterFinalizedMode(d){document.body.classList.add('finalized-html');document.querySelectorAll('#completionPanel input,#completionPanel select').forEach(el=>el.disabled=true);$('completionSig').style.pointerEvents='none';$('workflowSubtitle').textContent='Finalized permit — read-only and A4 print ready';$('workflowNotice').innerHTML='';$('workflowNotice').style.display='none';buildReport(d);closeDateCalendar()}
+function safeJsonForHtml(d){return JSON.stringify(d).replace(/</g,'\\u003c').replace(/-->/g,'--\\u003e')}
+function downloadEmbeddedHTML(d,filename,message,finalized=false,openAfterDownload=false){
+  const clone=document.documentElement.cloneNode(true),dataNode=clone.querySelector('#embeddedPermitData');dataNode.textContent=safeJsonForHtml(d);
+  normalizeCloneToEnglish(clone);
+  clone.querySelector('body').dataset.generatedPermit='true';
+  clone.querySelector('body').classList.add('review-mode');
+  clone.querySelector('.actions')?.classList.remove('mobile-collapsed');
+  clone.querySelectorAll('.actions button').forEach(button=>{if(!['loadDraftButton','primaryWorkflowButton'].includes(button.id))button.remove()});
+  const generatedLoad=clone.querySelector('#loadDraftButton');if(generatedLoad){generatedLoad.style.setProperty('display','inline-flex','important');generatedLoad.style.setProperty('visibility','visible','important');generatedLoad.style.setProperty('opacity','1','important')}
+  const generatedPrimary=clone.querySelector('#primaryWorkflowButton');if(generatedPrimary)generatedPrimary.textContent='Generate Final PDF';
+  clone.querySelector('#mobileActionsToggle')?.remove();
+  clone.querySelectorAll('#permitForm input,#permitForm textarea,#permitForm select').forEach(el=>{el.disabled=true;el.setAttribute('disabled','disabled');el.setAttribute('aria-readonly','true')});
+  clone.querySelectorAll('#permitForm .sign-pad').forEach(el=>{el.style.pointerEvents='none';el.setAttribute('aria-readonly','true')});
+  clone.querySelectorAll('#permitForm button').forEach(el=>{el.disabled=true;el.style.display='none'});
+  if(finalized){clone.querySelector('body').dataset.finalized='true';clone.querySelector('body').classList.add('finalized-html')}else{delete clone.querySelector('body').dataset.finalized;clone.querySelector('body').classList.remove('finalized-html')}
+  clone.querySelector('#reportMount').innerHTML='';clone.querySelector('#modal').classList.remove('show');clone.querySelector('#toast').classList.remove('show');
+  const html='<!DOCTYPE html>\n'+clone.outerHTML,blob=new Blob([html],{type:'text/html;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download=filename;a.setAttribute('download',filename);a.style.display='none';a.rel='noopener';document.body.appendChild(a);a.click();a.remove();if(openAfterDownload)window.open(url,'_blank','noopener');setTimeout(()=>URL.revokeObjectURL(url),60000);toast(message);
+}
+function generateCompletionHTML(){
+  const missing=validateForm();if(missing.length){showModal('Required Information Missing',`<p>Please complete the highlighted fields:</p><div class="missing-list">${missing.map(x=>'• '+esc(x)).join('<br>')}</div>`,lastMissingTarget);return}
+  const stamp=new Date().toISOString().slice(0,10),openOnDesktop=window.innerWidth>1024&&!window.matchMedia('(pointer:coarse)').matches;
+  showGenerationProgress();updateGenerationProgress(38,'Embedding permit data and signatures…');
+  downloadEmbeddedHTML(collectData(),`Permit_to_Work_${stamp}.html`,openOnDesktop?'Permit generated and opened':'Permit HTML saved to device Downloads',false,openOnDesktop);
+  setTimeout(()=>updateGenerationProgress(78,'Saving the permit HTML…'),120);setTimeout(finishGenerationProgress,420);
+}
+function handlePrimaryAction(){reviewMode?generatePDF():generateCompletionHTML()}
+const permitAutoSaveKey='permitToWorkAutoSave';
+const permitAutoSaveDb='PermitToWorkAutoSaveDB';
+let autoSaveTimer=null;
+let autoSaveStatusTimer=null;
+function setAutoSaveStatus(message,state='saving'){const status=$('autoSaveStatus');if(!status)return;clearTimeout(autoSaveStatusTimer);status.textContent=message;status.classList.add('show');status.classList.toggle('saved',state==='saved');status.classList.toggle('failed',state==='failed');if(state!=='saving')autoSaveStatusTimer=setTimeout(()=>{status.classList.remove('show','saved','failed');status.textContent=''},1800)}
+function openAutoSaveDb(){return new Promise((resolve,reject)=>{if(!window.indexedDB)return reject(new Error('IndexedDB unavailable'));const request=indexedDB.open(permitAutoSaveDb,1);request.onupgradeneeded=()=>{if(!request.result.objectStoreNames.contains('drafts'))request.result.createObjectStore('drafts')};request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error||new Error('IndexedDB open failed'))})}
+async function writeAutoSavedPermit(data){const db=await openAutoSaveDb();return new Promise((resolve,reject)=>{const tx=db.transaction('drafts','readwrite');tx.objectStore('drafts').put(data,permitAutoSaveKey);tx.oncomplete=()=>{db.close();resolve()};tx.onerror=()=>{const error=tx.error||new Error('IndexedDB write failed');db.close();reject(error)};tx.onabort=tx.onerror})}
+async function readAutoSavedPermit(){try{const db=await openAutoSaveDb();return await new Promise((resolve,reject)=>{const tx=db.transaction('drafts','readonly'),request=tx.objectStore('drafts').get(permitAutoSaveKey);request.onsuccess=()=>{db.close();resolve(request.result||null)};request.onerror=()=>{const error=request.error||new Error('IndexedDB read failed');db.close();reject(error)}})}catch(e){const raw=localStorage.getItem(permitAutoSaveKey);return raw?JSON.parse(raw):null}}
+async function savePermitToBrowser(){try{const data=collectData();await writeAutoSavedPermit(data);try{localStorage.setItem(permitAutoSaveKey,JSON.stringify(data))}catch(e){}setAutoSaveStatus('Saved Successfully','saved')}catch(e){console.error('Unable to auto-save permit',e);setAutoSaveStatus('Save Failed','failed')}}
+function scheduleAutoSave(){clearTimeout(autoSaveTimer);setAutoSaveStatus('Saving…','saving');autoSaveTimer=setTimeout(savePermitToBrowser,250)}
+async function restoreAutoSavedPermit(){try{const data=await readAutoSavedPermit();if(!data)return false;applyData(data);return true}catch(e){console.error('Unable to restore auto-saved permit',e);return false}}
+function setupAutoSave(){if(document.body.dataset.autoSaveReady)return;document.body.dataset.autoSaveReady='true';document.querySelector('main')?.addEventListener('input',scheduleAutoSave);document.querySelector('main')?.addEventListener('change',scheduleAutoSave)}
+async function loadDraft(){if(await restoreAutoSavedPermit())toast('Draft Loaded Successfully');else toast('No Saved Draft Found')}
+setupAutoSave();
+function clearForm(){$('clearConfirm').classList.add('show')}
+function esc(v){return (v||'').replace(/[&<>]/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[s]))}
+function sigImg(src){return src?`<img class="pdf-sign-img" src="${src}">`:'<div class="pdf-sign-line"></div>'}
+function pdfCell(label,value){return `<div class="pdf-cell"><div class="pdf-lab">${label}</div><div class="pdf-val">${esc(value)}</div></div>`}
+const permitDefinitions=[
+  ['permitTypeGeneral','General Work Permit','Routine maintenance, installation, repair or other general work not covered by a specialist permit.'],
+  ['permitTypeElectrical','Electrical Work Permit','Work on electrical systems, distribution boards, circuits, isolation points or energized equipment.'],
+  ['permitTypeHotWork','Hot Work','Welding, cutting, brazing, soldering, grinding or any activity producing heat, sparks or flame.'],
+  ['permitTypeHeights','Working at Heights','Work at 2 metres or above, including ladders, scaffolds, elevated platforms or exposed edges.'],
+  ['permitTypeOther','Other / Supplementary Permit','Another controlled activity or supplementary authorization.']
+];
+function pdfPermitCards(d){return permitDefinitions.map(([id,name,description])=>{
+  const selected=!!d[id];
+  const finalName=id==='permitTypeOther'&&d.permitTypeOtherText?`${name}: ${esc(d.permitTypeOtherText)}`:name;
+  return `<div class="pdf-permit${selected?' pdf-chosen':''}" style="${selected?'background:rgb(238,241,244)!important;background-color:rgb(238,241,244)!important;background-image:none!important;':'background:#fff!important;background-color:#fff!important;'}"><div class="pdf-tick">${selected?'✓':''}</div><div><div class="pdf-permit-name">${finalName}</div><div class="pdf-permit-description">${description}</div></div></div>`;
+}).join('')}
+function pdfHeader(){return `<div class="pdf-brand-head"><div class="pdf-property-band">CONRAD ABU DHABI ETIHAD TOWERS</div><div class="pdf-report-title">PERMIT TO WORK</div></div>`}
+function pdfFooter(page){return `<div class="pdf-footer"><span>Conrad Abu Dhabi Etihad Towers · Controlled Permit Document</span><span>Page ${page} of 2</span></div>`}
+function buildReport(d){
+const yn=v=>esc(v||'');
+$('reportMount').innerHTML=`
+  <section class="pdf-sheet">${pdfHeader()}
+  <div class="pdf-subsection"><span>WORK PERMIT TYPE</span><span class="pdf-reference">REF:CAD-OSHMS-009-REV03</span></div>
+  <div class="pdf-permits">${pdfPermitCards(d)}</div>
+  <div class="pdf-grid">
+    ${pdfCell('Company Name',d.companyName)}${pdfCell('Property Name',d.propertyBuilding)}
+    ${pdfCell('Name of Senior Company Person | Emirates ID#',`${d.seniorName} | ${d.seniorId}`)}${pdfCell('Place of Work',d.roomCode)}
+    ${pdfCell('Number of Persons on this Permit',d.personsNo)}${pdfCell('Person On Site & Phone Number',`${d.personOnSite} / ${d.personOnSitePhone}`)}
+    ${pdfCell('Asset Code if Applicable',d.assetCode)}${pdfCell('LPO Number',d.lpoNo)}
+    ${pdfCell('VALID FROM (Time/Date)',`${d.validTime} / ${formatDate(d.validDate)}`)}${pdfCell('PERMIT EXPIRES (Time/Date)',`${d.expireTime} / ${formatDate(d.expireDate)}`)}
+  </div>
+  <div class="pdf-text-section"><div class="pdf-text-head">DESCRIPTION OF WORK TO BE CARRIED OUT</div><div class="pdf-text-value">${esc(d.workDescription)}</div></div>
+  <div class="pdf-text-section"><div class="pdf-text-head">PERSONAL PROTECTIVE EQUIPMENT (PPE) USED</div><div class="pdf-text-value">${esc(d.ppeUsed)}</div></div>
+  <div class="pdf-block-header"><div>Briefing / Requirement</div><div>Engineering</div><div>Work Activity</div><div>Contractor</div></div>
+  <div class="pdf-block-row"><div class="pdf-bg">The contractor has been briefed on ACTION IN EVEN OF FIRE!</div><div class="pdf-block-answer">${yn(d.briefFire)}</div><div class="pdf-bg">The Contractor will be welding, brazing, soldering or other Hot Works</div><div class="pdf-block-answer">${yn(d.hotWorks)}</div></div>
+  <div class="pdf-block-row"><div class="pdf-bg">The contractor has been briefed on PPE, Dress & Behavior Codes.</div><div class="pdf-block-answer">${yn(d.briefPpe)}</div><div class="pdf-bg">The Contractor will be working on the Power & Distribution System</div><div class="pdf-block-answer">${yn(d.powerSystem)}</div></div>
+  <div class="pdf-block-row"><div class="pdf-bg">The contractor has been briefed on Ablution, Eating and Hours of Work.</div><div class="pdf-block-answer">${yn(d.briefHours)}</div><div class="pdf-bg">The Contractor will be working on the Domestic Water System</div><div class="pdf-block-answer">${yn(d.waterSystem)}</div></div>
+  <div class="pdf-block-row"><div class="pdf-bg">The contractor has been briefed on Security Regulations whilst on site.</div><div class="pdf-block-answer">${yn(d.briefSecurity)}</div><div class="pdf-bg">The Contractor will be working on the Fire Detection/Fire Protection Systems</div><div class="pdf-block-answer">${yn(d.fireProtection)}</div></div>
+  <div class="pdf-block-row"><div class="pdf-bg">The contractor has been briefed on access to site and storage of materials.</div><div class="pdf-block-answer">${yn(d.briefAccess)}</div><div class="pdf-bg">The Contractor will be Working At Heights (2m or More)</div><div class="pdf-block-answer">${yn(d.heights)}</div></div>
+  <div class="pdf-block-row"><div class="pdf-bg">The contractor has been briefed on Safety Regulations on reverse of this form.</div><div class="pdf-block-answer">${yn(d.briefSafety)}</div><div class="pdf-bg">The Contractor will be working in Confined Spaces</div><div class="pdf-block-answer">${yn(d.confinedSpaces)}</div></div>
+  ${pdfFooter(1)}</section>
+  <section class="pdf-sheet">${pdfHeader()}
+  <div class="pdf-section">CONTRACTORS SAFETY REGULATIONS</div>
+  <div class="pdf-regulations">
+    <ol>
+      <li>Provide personnel with appropriate safety equipment for the work being carried out.</li>
+      <li>Cordon off work areas with suitable barriers where necessary. Barriers must prevent unauthorised access. Danger tape is not permitted.</li>
+      <li>Display appropriate warning signs next to the cordoned-off work area.</li>
+      <li>Brief personnel on the safe use of all required tools and equipment.</li>
+      <li>Ensure all tools and equipment are safe and fit for purpose.</li>
+      <li>Ensure equipment requiring certification has current valid certification.</li>
+      <li>Fit electric power tools with appropriate guards and electrical plugs.</li>
+      <li>Ensure extension leads have appropriate plugs and are free from cuts and kinks.</li>
+      <li>Provide a list and required SDS/MSDS for hazardous or toxic substances before work begins and store them safely.</li>
+      <li>Smoke and eat only in designated areas.</li>
+      <li>Keep the work area clean and remove fire/safety hazards and all waste promptly.</li>
+      <li>No work in or around swimming pools without Conrad-provided lifeguard cover.</li>
+      <li>Use only ladders in good condition and have a second person secure the ladder while in use.</li>
+      <li class="pdf-regulation-critical">IMPORTANT! The team member signing below must ensure all relevant systems & equipment are locked out per policy & guidelines, and all supplementary permits have been issued.</li>
+    </ol>
+    <div class="pdf-regulations-note">ACKNOWLEDGED BY CONTRACTOR: ${d.safetyRegulationsAck ? 'YES' : 'NO'}</div>
+  </div>
+  <div class="pdf-sig-grid">
+    <div class="pdf-signatory"><div class="pdf-signatory-head">Senior Contractor Representative</div><div class="pdf-signatory-info single"><div class="pdf-signatory-row"><div class="pdf-sig-lab">Issue Date</div><div class="pdf-sig-val">${esc(formatDate(d.issueDate))}</div></div></div><div class="pdf-signature-label">Signature</div><div class="pdf-signature-large">${sigImg(d.contractorSig)}</div></div>
+    <div class="pdf-signatory"><div class="pdf-signatory-head">Responsible Conrad Team Member</div><div class="pdf-signatory-info"><div class="pdf-signatory-row"><div class="pdf-sig-lab">Name</div><div class="pdf-sig-val">${esc(d.responsibleName)}</div></div><div class="pdf-signatory-row"><div class="pdf-sig-lab">Employee ID</div><div class="pdf-sig-val">${esc(d.responsibleId)}</div></div><div class="pdf-signatory-row"><div class="pdf-sig-lab">Designation</div><div class="pdf-sig-val">${esc(d.responsibleDesignation)}</div></div></div><div class="pdf-signature-label">Signature</div><div class="pdf-signature-large">${sigImg(d.conradSig)}</div></div>
+  </div>
+  <div class="pdf-section after">SECTION MUST BE COMPLETED AND SIGNED AFTER COMPLETION OF WORK</div>
+  <div class="pdf-complete">
+    <div class="pdf-completion-left">
+      <div class="pdf-block-row"><div class="pdf-bg">I confirm the work has been completed satisfactorily</div><div class="pdf-completion-value">${esc(d.completeSatisfactory)}</div></div>
+      <div class="pdf-block-row"><div class="pdf-bg">I confirm all drawings, O&M Manuals, Guarantees have been received</div><div class="pdf-completion-value">${esc(d.completeDocuments)}</div></div>
+      <div class="pdf-block-row"><div class="pdf-bg">All Supplementary permits relating to this permit have been closed off</div><div class="pdf-completion-value">${esc(d.completePermits)}</div></div>
+      <div class="pdf-block-row"><div class="pdf-bg">All debris related to work has been cleared from site.</div><div class="pdf-completion-value">${esc(d.completeDebris)}</div></div>
+    </div>
+    <div class="pdf-completion-right">
+      <div class="pdf-completion-row"><div class="pdf-lab">Name of Responsible Conrad Team Member</div><div class="pdf-val">${esc(d.completionName)}</div></div>
+      <div class="pdf-completion-row"><div class="pdf-lab">Employee ID</div><div class="pdf-val">${esc(d.completionId)}</div></div>
+      <div class="pdf-completion-row"><div class="pdf-lab">Designation</div><div class="pdf-val">${esc(d.completionDesignation)}</div></div>
+      <div class="pdf-completion-row"><div class="pdf-lab">Completion Date</div><div class="pdf-val">${esc(formatDate(d.completionDate))}</div></div>
+      <div class="pdf-completion-sign-label">Signature</div><div class="pdf-completion-sign-box">${d.completionSig?`<img class="pdf-completion-signature" src="${d.completionSig}">`:''}</div>
+    </div>
+  </div>${pdfFooter(2)}</section>`;
+}
+async function generatePDF(){
+  const missing=reviewMode?validateCompletion():validateForm();
+  if(missing.length){showModal('Required Information Missing',`<p>Please complete the highlighted fields before generating the final PDF:</p><div class="missing-list">${missing.map(x=>'• '+esc(x)).join('<br>')}</div>`,lastMissingTarget);return;}
+  const d=collectData();buildReport(d);toast('Generating PDF report...');
+  try{
+    if(!window.jspdf||!window.html2canvas)throw new Error('PDF libraries not loaded');
+    const sheets=[...$('reportMount').querySelectorAll('.pdf-sheet')];
+    const {jsPDF}=window.jspdf;const pdf=new jsPDF({orientation:'p',unit:'mm',format:'a4',compress:true});
+    for(let i=0;i<sheets.length;i++){
+      const canvas=await html2canvas(sheets[i],{scale:2,backgroundColor:'#ffffff',useCORS:true,logging:false,letterRendering:true,removeContainer:true});
+      const imgData=canvas.toDataURL('image/jpeg',0.9);
+      if(i>0)pdf.addPage();
+      pdf.addImage(imgData,'JPEG',5,5,200,287,undefined,'FAST');
+    }
+    pdf.save(`Permit_to_Work_Report.pdf`);toast('PDF report generated');
+  }catch(e){console.error(e);showModal('PDF Fallback',`<p>The direct PDF library is not available in this browser. Please use the browser print option and choose <b>Save as PDF</b>.</p>`);window.print();}
+}
+window.addEventListener('load',async()=>{initDates();initSignatures();setupCustomTimePicker();setupDateTimePickers();captureEnglishInterface();if($('interfaceLanguage'))setInterfaceLanguage(localStorage.getItem('permitInterfaceLanguage')||'en');else currentInterfaceLanguage='en';setupAutoPrediction();['workDescription','ppeUsed'].forEach(id=>{$(id)?.addEventListener('input',e=>autoResizeTextarea(e.target));autoResizeTextarea($(id))});if(window.innerWidth<=900&&document.body.dataset.generatedPermit!=='true')document.querySelector('.actions')?.classList.add('mobile-collapsed');['validDate','expireDate','issueDate','completionDate'].forEach(id=>$(id)?.addEventListener('blur',normalizeDateFields));const raw=$('embeddedPermitData')?.textContent.trim();if(raw){try{const d=JSON.parse(raw);enterReviewMode(d);await restoreAutoSavedPermit();if(document.body.dataset.finalized==='true')enterFinalizedMode(collectData())}catch(e){console.error('Unable to load embedded permit data',e)}}else await restoreAutoSavedPermit();setupAutoSave()});
+window.addEventListener('resize',()=>{clearTimeout(window._rs);window._rs=setTimeout(()=>{document.querySelectorAll('.sign-pad').forEach(setCanvasSize);resizeLongTextFields()},250)});
+</script>
+</body>
+</html>
